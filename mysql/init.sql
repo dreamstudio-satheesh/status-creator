@@ -24,6 +24,7 @@ CREATE TABLE users (
     daily_ai_quota int(11) NOT NULL DEFAULT 10,
     daily_ai_used int(11) NOT NULL DEFAULT 0,
     last_quota_reset date DEFAULT NULL,
+    preferences json DEFAULT NULL,
     remember_token varchar(100) DEFAULT NULL,
     created_at timestamp NULL DEFAULT NULL,
     updated_at timestamp NULL DEFAULT NULL,
@@ -265,6 +266,56 @@ INSERT INTO settings (key_name, value, type, description) VALUES
 ('maintenance_mode', 'false', 'boolean', 'Enable maintenance mode'),
 ('openrouter_model', 'meta-llama/llama-3.2-3b-instruct:free', 'string', 'OpenRouter model to use'),
 ('caption_model', 'Salesforce/blip-image-captioning-base', 'string', 'Image captioning model');
+
+-- User favorites table
+CREATE TABLE user_favorites (
+    id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id bigint(20) UNSIGNED NOT NULL,
+    template_id bigint(20) UNSIGNED NOT NULL,
+    created_at timestamp NULL DEFAULT NULL,
+    updated_at timestamp NULL DEFAULT NULL,
+    UNIQUE KEY user_favorites_user_id_template_id_unique (user_id,template_id),
+    KEY user_favorites_user_id_index (user_id),
+    KEY user_favorites_template_id_index (template_id),
+    CONSTRAINT user_favorites_user_id_foreign FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT user_favorites_template_id_foreign FOREIGN KEY (template_id) REFERENCES templates (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Template ratings table
+CREATE TABLE template_ratings (
+    id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id bigint(20) UNSIGNED NOT NULL,
+    template_id bigint(20) UNSIGNED NOT NULL,
+    rating tinyint(3) UNSIGNED NOT NULL,
+    review text DEFAULT NULL,
+    created_at timestamp NULL DEFAULT NULL,
+    updated_at timestamp NULL DEFAULT NULL,
+    UNIQUE KEY template_ratings_user_id_template_id_unique (user_id,template_id),
+    KEY template_ratings_template_id_index (template_id),
+    KEY template_ratings_rating_index (rating),
+    CONSTRAINT template_ratings_user_id_foreign FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT template_ratings_template_id_foreign FOREIGN KEY (template_id) REFERENCES templates (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- User feedback table
+CREATE TABLE user_feedback (
+    id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id bigint(20) UNSIGNED NOT NULL,
+    type varchar(255) NOT NULL DEFAULT 'general',
+    subject varchar(255) NOT NULL,
+    message text NOT NULL,
+    rating tinyint(3) UNSIGNED DEFAULT NULL,
+    status varchar(255) NOT NULL DEFAULT 'open',
+    admin_response text DEFAULT NULL,
+    responded_at timestamp NULL DEFAULT NULL,
+    metadata json DEFAULT NULL,
+    created_at timestamp NULL DEFAULT NULL,
+    updated_at timestamp NULL DEFAULT NULL,
+    KEY user_feedback_user_id_type_index (user_id,type),
+    KEY user_feedback_status_index (status),
+    KEY user_feedback_created_at_index (created_at),
+    CONSTRAINT user_feedback_user_id_foreign FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Create admin user (password: admin123)
 INSERT INTO users (name, email, mobile, password, subscription_type, daily_ai_quota, email_verified_at) VALUES

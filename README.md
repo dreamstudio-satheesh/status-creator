@@ -32,7 +32,7 @@ The system minimizes LLM API costs using **prebuilt templates**, **bulk AI gener
   - Save to gallery
 
 - **Admin Panel**
-  - Built with TailwindCSS + Blade.js
+  - Built with TailwindCSS + Blade + js
   - CRUD for templates, themes, users, and subscriptions
   - Bulk AI generation tool
   - Usage analytics
@@ -198,14 +198,7 @@ statusapp/
 
 ## 🚀 Production Deployment
 
-### Using Docker Swarm
-```bash
-docker swarm init
-docker stack deploy -c docker-compose.prod.yml status-app
-```
-
-### Using Kubernetes
-Helm charts coming soon!
+For production deployment, configure your environment variables for production use and deploy using your preferred container orchestration platform.
 
 ---
 

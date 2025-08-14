@@ -12,8 +12,8 @@ services:
       MYSQL_PASSWORD: secret_password
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      # - ./mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      # - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     ports:
       - "3306:3306"
     networks:
@@ -65,27 +65,27 @@ services:
       - MAIL_HOST=mailhog
       - AWS_ENDPOINT=http://minio:9000
 
-  # Flutter Frontend (Development)
-  flutter:
-    build:
-      context: ./flutter
-      dockerfile: Dockerfile
-    container_name: status_flutter
-    restart: unless-stopped
-    working_dir: /app
-    volumes:
-      - ./flutter:/app
-      - flutter_pub_cache:/root/.pub-cache
-    ports:
-      - "8080:8080"
-    depends_on:
-      - backend
-    networks:
-      - status_network
-    environment:
-      - API_BASE_URL=http://backend/api
-    stdin_open: true
-    tty: true
+  # # Flutter Frontend (Development)
+  # flutter:
+  #   build:
+  #     context: ./flutter
+  #     dockerfile: Dockerfile
+  #   container_name: status_flutter
+  #   restart: unless-stopped
+  #   working_dir: /app
+  #   volumes:
+  #     - ./flutter:/app
+  #     - flutter_pub_cache:/root/.pub-cache
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - status_network
+  #   environment:
+  #     - API_BASE_URL=http://backend/api
+  #   stdin_open: true
+  #   tty: true
 
   # Nginx Reverse Proxy
   nginx:
@@ -101,7 +101,7 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl
     depends_on:
       - backend
-      - flutter
+      # - flutter
     networks:
       - status_network
 
@@ -112,7 +112,7 @@ services:
     restart: unless-stopped
     ports:
       - "9000:9000"
-      - "9001:9001"
+      - "9002:9001"
     volumes:
       - minio_data:/data
     environment:
