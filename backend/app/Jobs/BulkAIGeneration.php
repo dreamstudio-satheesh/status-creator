@@ -19,21 +19,33 @@ class BulkAIGeneration implements ShouldQueue
     public $timeout = 3600; // 1 hour
     public $tries = 1;
 
-    protected array $themes;
-    protected int $countPerTheme;
+    protected $theme;
+    protected string $type;
+    protected array $prompts;
+    protected int $countPerPrompt;
+    protected string $style;
+    protected string $length;
+    protected int $adminId;
     protected string $jobId;
-    protected array $options;
 
-    public function __construct(array $themes, int $countPerTheme = 10, array $options = [])
+    public function __construct(
+        Theme $theme,
+        string $type,
+        array $prompts,
+        int $countPerPrompt,
+        string $style,
+        string $length,
+        int $adminId
+    )
     {
-        $this->themes = $themes;
-        $this->countPerTheme = $countPerTheme;
+        $this->theme = $theme;
+        $this->type = $type;
+        $this->prompts = $prompts;
+        $this->countPerPrompt = $countPerPrompt;
+        $this->style = $style;
+        $this->length = $length;
+        $this->adminId = $adminId;
         $this->jobId = uniqid('bulk_ai_');
-        $this->options = array_merge([
-            'create_templates' => true,
-            'model' => 'meta-llama/llama-3.2-3b-instruct:free',
-            'delay_between_requests' => 1000, // ms
-        ], $options);
         
         $this->onQueue('bulk_generation');
     }
@@ -43,88 +55,87 @@ class BulkAIGeneration implements ShouldQueue
         try {
             Log::info('Starting bulk AI generation', [
                 'job_id' => $this->jobId,
-                'themes' => $this->themes,
-                'count_per_theme' => $this->countPerTheme,
-                'options' => $this->options,
+                'theme' => $this->theme->name,
+                'type' => $this->type,
+                'prompts_count' => count($this->prompts),
+                'count_per_prompt' => $this->countPerPrompt,
+                'style' => $this->style,
+                'length' => $this->length,
+                'admin_id' => $this->adminId,
             ]);
 
             $results = [];
             $totalGenerated = 0;
             $totalCost = 0;
 
-            foreach ($this->themes as $themeName) {
-                $theme = Theme::where('slug', $themeName)->orWhere('name', $themeName)->first();
-                
-                if (!$theme) {
-                    Log::warning("Theme not found: {$themeName}");
-                    continue;
-                }
+            foreach ($this->prompts as $index => $prompt) {
+                $promptResults = [];
 
-                $themeResults = [];
-
-                for ($i = 0; $i < $this->countPerTheme; $i++) {
+                for ($i = 0; $i < $this->countPerPrompt; $i++) {
                     try {
-                        $styles = ['inspirational', 'emotional', 'philosophical', 'traditional'];
-                        $lengths = ['short', 'medium'];
-                        
-                        $style = $styles[array_rand($styles)];
-                        $length = $lengths[array_rand($lengths)];
+                        $quote = $openRouterService->generateTamilQuote(
+                            $prompt,
+                            $this->type,
+                            $this->style,
+                            $this->length
+                        );
 
-                        $result = $openRouterService->generateTamilQuote([
-                            'theme' => $themeName,
-                            'style' => $style,
-                            'length' => $length,
-                            'model' => $this->options['model'],
-                        ]);
-
-                        if ($result['success']) {
-                            $quoteData = [
-                                'quote' => $result['quote'],
-                                'style' => $style,
-                                'length' => $length,
-                                'metadata' => $result['metadata'],
+                        if ($quote) {
+                            $templateData = [
+                                'name' => "AI Generated - " . ucfirst($this->type) . " " . ($index + 1) . "-" . ($i + 1),
+                                'content' => $quote,
+                                'theme_id' => $this->theme->id,
+                                'type' => $this->type,
+                                'tags' => "ai-generated,{$this->type},{$this->style}",
+                                'is_premium' => false,
+                                'is_active' => true,
+                                'is_featured' => false,
+                                'sort_order' => 0,
                             ];
 
-                            $themeResults[] = $quoteData;
+                            $template = $this->createTemplate($templateData);
+                            
+                            $promptResults[] = [
+                                'template_id' => $template->id,
+                                'content' => $quote,
+                                'prompt' => $prompt,
+                            ];
+                            
                             $totalGenerated++;
-                            $totalCost += $result['metadata']['cost'];
+                            $totalCost += 0.02; // Estimate
 
-                            // Create template if option is enabled
-                            if ($this->options['create_templates']) {
-                                $this->createTemplate($theme, $quoteData);
-                            }
-
-                            Log::info("Generated quote " . ($i+1) . "/{$this->countPerTheme} for theme {$themeName}");
+                            Log::info("Generated content " . ($i + 1) . "/{$this->countPerPrompt} for prompt " . ($index + 1));
                         } else {
-                            Log::warning("Failed to generate quote for theme {$themeName}: " . $result['error']);
+                            Log::warning("Failed to generate content for prompt " . ($index + 1));
                         }
 
                         // Add delay between requests
-                        if ($this->options['delay_between_requests'] > 0) {
-                            usleep($this->options['delay_between_requests'] * 1000);
-                        }
+                        usleep(1000000); // 1 second delay
 
                     } catch (\Exception $e) {
-                        Log::error("Error generating quote for theme {$themeName}", [
+                        Log::error("Error generating content for prompt " . ($index + 1), [
                             'error' => $e->getMessage(),
                             'iteration' => $i + 1,
                         ]);
                     }
                 }
 
-                $results[$themeName] = $themeResults;
+                $results["prompt_" . ($index + 1)] = $promptResults;
 
-                Log::info("Completed theme {$themeName}: {$this->countPerTheme} requested, " . count($themeResults) . " generated");
+                Log::info("Completed prompt " . ($index + 1) . ": {$this->countPerPrompt} requested, " . count($promptResults) . " generated");
             }
 
             $summary = [
                 'job_id' => $this->jobId,
-                'total_requested' => count($this->themes) * $this->countPerTheme,
+                'total_requested' => count($this->prompts) * $this->countPerPrompt,
                 'total_generated' => $totalGenerated,
                 'total_cost' => round($totalCost, 6),
-                'themes_processed' => count($this->themes),
-                'model_used' => $this->options['model'],
-                'templates_created' => $this->options['create_templates'] ? $totalGenerated : 0,
+                'prompts_processed' => count($this->prompts),
+                'theme' => $this->theme->name,
+                'type' => $this->type,
+                'style' => $this->style,
+                'length' => $this->length,
+                'templates_created' => $totalGenerated,
                 'completed_at' => now()->toISOString(),
             ];
 
@@ -161,31 +172,16 @@ class BulkAIGeneration implements ShouldQueue
         }
     }
 
-    private function createTemplate(Theme $theme, array $quoteData): void
+    private function createTemplate(array $templateData): Template
     {
         try {
-            Template::create([
-                'theme_id' => $theme->id,
-                'title' => 'AI Generated - ' . ucfirst($quoteData['style']) . ' ' . ucfirst($quoteData['length']),
-                'quote_text' => $quoteData['quote'],
-                'quote_text_ta' => $quoteData['quote'], // Same as Tamil
-                'font_family' => 'Tamil',
-                'font_size' => $quoteData['length'] === 'short' ? 28 : 24,
-                'text_color' => $theme->color ?? '#FFFFFF',
-                'text_alignment' => 'center',
-                'padding' => 20,
-                'is_premium' => false,
-                'is_featured' => false,
-                'is_active' => true,
-                'ai_generated' => true,
-                'image_caption' => "AI generated {$quoteData['style']} quote about {$theme->name}",
-            ]);
+            return Template::create($templateData);
         } catch (\Exception $e) {
             Log::error('Failed to create template from AI generation', [
-                'theme_id' => $theme->id,
-                'quote' => $quoteData['quote'],
+                'template_data' => $templateData,
                 'error' => $e->getMessage(),
             ]);
+            throw $e;
         }
     }
 

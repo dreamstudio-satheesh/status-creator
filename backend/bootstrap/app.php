@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'premium' => \App\Http\Middleware\CheckPremiumUser::class,
             'ai_quota' => \App\Http\Middleware\CheckAIQuota::class,
+            'admin' => \App\Http\Middleware\AdminAuth::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
