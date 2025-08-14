@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+            'premium' => \App\Http\Middleware\CheckPremiumUser::class,
+            'ai_quota' => \App\Http\Middleware\CheckAIQuota::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

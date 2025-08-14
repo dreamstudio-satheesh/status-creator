@@ -19,11 +19,20 @@ Route::get('/health', function () {
 // Public routes (no authentication required)
 Route::prefix('v1')->group(function () {
     // Authentication routes
-    Route::prefix('auth')->group(function () {
+    Route::prefix('auth')->middleware('throttle:auth')->group(function () {
         Route::post('/send-otp', [\App\Http\Controllers\AuthController::class, 'sendOtp']);
         Route::post('/verify-otp', [\App\Http\Controllers\AuthController::class, 'verifyOtp']);
-        Route::post('/google-login', [\App\Http\Controllers\AuthController::class, 'googleLogin']);
-        Route::post('/refresh', [\App\Http\Controllers\AuthController::class, 'refresh']);
+        Route::post('/resend-otp', [\App\Http\Controllers\AuthController::class, 'resendOtp']);
+        Route::get('/google/redirect', [\App\Http\Controllers\AuthController::class, 'googleRedirect']);
+        Route::get('/google/callback', [\App\Http\Controllers\AuthController::class, 'googleCallback']);
+    });
+
+    // Password reset routes
+    Route::prefix('password')->middleware('throttle:auth')->group(function () {
+        Route::post('/send-reset-otp', [\App\Http\Controllers\PasswordResetController::class, 'sendResetOtp']);
+        Route::post('/verify-reset-otp', [\App\Http\Controllers\PasswordResetController::class, 'verifyResetOtp']);
+        Route::post('/reset', [\App\Http\Controllers\PasswordResetController::class, 'resetPassword']);
+        Route::post('/email-reset-link', [\App\Http\Controllers\PasswordResetController::class, 'sendEmailResetLink']);
     });
 
     // Public content routes
@@ -48,9 +57,18 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     });
 
     // Authentication management
-    Route::prefix('auth')->group(function () {
+    Route::prefix('auth')->middleware('throttle:profile')->group(function () {
         Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
-        Route::get('/me', [\App\Http\Controllers\AuthController::class, 'me']);
+        Route::get('/profile', [\App\Http\Controllers\AuthController::class, 'profile']);
+        Route::put('/profile', [\App\Http\Controllers\AuthController::class, 'updateProfile']);
+        Route::post('/reset-quota', [\App\Http\Controllers\AuthController::class, 'resetQuota']);
+    });
+
+    // Email verification routes
+    Route::prefix('email')->middleware('throttle:profile')->group(function () {
+        Route::post('/verification-notification', [\App\Http\Controllers\EmailVerificationController::class, 'sendVerificationEmail']);
+        Route::get('/verify/{id}/{hash}', [\App\Http\Controllers\EmailVerificationController::class, 'verifyEmail'])->name('verification.verify');
+        Route::get('/verification-status', [\App\Http\Controllers\EmailVerificationController::class, 'checkVerificationStatus']);
     });
 
     // Template management
@@ -61,8 +79,8 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
         Route::post('/{template}/favorite', [\App\Http\Controllers\TemplateController::class, 'toggleFavorite']);
     });
 
-    // AI Generation (Premium users)
-    Route::middleware('premium')->prefix('ai')->group(function () {
+    // AI Generation (with quota checking)
+    Route::middleware('ai_quota')->prefix('ai')->group(function () {
         Route::post('/generate-quote', [\App\Http\Controllers\AIController::class, 'generateQuote']);
         Route::post('/caption-image', [\App\Http\Controllers\AIController::class, 'captionImage']);
         Route::get('/quota', [\App\Http\Controllers\AIController::class, 'quota']);
