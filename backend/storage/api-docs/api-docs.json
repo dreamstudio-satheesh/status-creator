@@ -1,0 +1,302 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "AI Tamil Status Creator API",
+        "description": "API documentation for the AI Tamil Status Creator application. A comprehensive platform for creating and sharing Tamil status images with AI-powered quote generation.",
+        "contact": {
+            "name": "Tamil Status Creator Support",
+            "email": "support@tamilstatus.app"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://my-default-host.com",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/api/v1/ai/generate-quote": {
+            "post": {
+                "tags": [
+                    "AI Generation"
+                ],
+                "summary": "Generate Tamil quote using AI",
+                "description": "Generates a Tamil quote using AI based on theme, style, and length preferences. Requires authentication and consumes daily quota.",
+                "operationId": "395a5432605c675e1547a90902d77969",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "theme": {
+                                        "description": "Theme of the quote (love, motivation, life, success, etc.)",
+                                        "type": "string",
+                                        "example": "love"
+                                    },
+                                    "style": {
+                                        "description": "Style of the quote",
+                                        "type": "string",
+                                        "enum": [
+                                            "inspirational",
+                                            "emotional",
+                                            "philosophical",
+                                            "traditional",
+                                            "modern",
+                                            "poetic"
+                                        ],
+                                        "example": "inspirational"
+                                    },
+                                    "length": {
+                                        "description": "Length of the quote",
+                                        "type": "string",
+                                        "enum": [
+                                            "short",
+                                            "medium",
+                                            "long"
+                                        ],
+                                        "example": "medium"
+                                    },
+                                    "context": {
+                                        "description": "Additional context for quote generation",
+                                        "type": "string",
+                                        "example": "for social media"
+                                    },
+                                    "template_id": {
+                                        "description": "Optional template ID to associate with generation",
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Quote generated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "quote": {
+                                            "type": "string",
+                                            "example": "அன்பு என்பது இதயத்தின் மொழி"
+                                        },
+                                        "theme": {
+                                            "type": "string",
+                                            "example": "love"
+                                        },
+                                        "style": {
+                                            "type": "string",
+                                            "example": "inspirational"
+                                        },
+                                        "length": {
+                                            "type": "string",
+                                            "example": "medium"
+                                        },
+                                        "quota_remaining": {
+                                            "type": "integer",
+                                            "example": 9
+                                        },
+                                        "generation_metadata": {
+                                            "properties": {
+                                                "model_used": {
+                                                    "type": "string",
+                                                    "example": "meta-llama/llama-3.2-3b-instruct:free"
+                                                },
+                                                "tokens_used": {
+                                                    "type": "integer",
+                                                    "example": 45
+                                                },
+                                                "cost": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 0.000123
+                                                },
+                                                "processing_time_ms": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 1234.56
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Quota exceeded or rate limited",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Daily AI generation quota exceeded"
+                                        },
+                                        "daily_ai_quota": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "daily_ai_used": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "is_premium": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "suggestion": {
+                                            "type": "string",
+                                            "example": "Upgrade to premium for higher quota (100 vs 10)"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/send-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Send OTP to mobile number",
+                "description": "Sends a 6-digit OTP to the provided mobile number for authentication",
+                "operationId": "c358d459679c0224ae15f9683dd9c67e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "mobile": {
+                                        "description": "Mobile number with country code",
+                                        "type": "string",
+                                        "example": "+919876543210"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP sent successfully to your mobile number"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer",
+                                            "example": 300
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid mobile number format"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Too many OTP requests. Please try again in 5 minutes."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Enter token obtained from login/register endpoints",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "User authentication and authorization endpoints"
+        },
+        {
+            "name": "AI Generation",
+            "description": "AI-powered Tamil quote generation and image analysis"
+        }
+    ]
+}

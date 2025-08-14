@@ -22,6 +22,46 @@ class AuthController extends Controller
         $this->msg91Service = $msg91Service;
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/send-otp",
+     *     tags={"Authentication"},
+     *     summary="Send OTP to mobile number",
+     *     description="Sends a 6-digit OTP to the provided mobile number for authentication",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="mobile", type="string", example="+919876543210", description="Mobile number with country code")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="OTP sent successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP sent successfully to your mobile number"),
+     *             @OA\Property(property="expires_in", type="integer", example=300)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Invalid mobile number format"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=429,
+     *         description="Too many requests",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Too many OTP requests. Please try again in 5 minutes.")
+     *         )
+     *     )
+     * )
+     */
     public function sendOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [

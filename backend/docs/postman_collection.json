@@ -1,0 +1,881 @@
+{
+  "info": {
+    "name": "AI Tamil Status Creator API",
+    "description": "Complete API collection for the AI Tamil Status Creator application. This collection includes all endpoints for authentication, user management, themes, templates, AI generation, and admin functions.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "api_url",
+      "value": "{{base_url}}/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"+919876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/auth/send-otp",
+              "host": ["{{api_url}}"],
+              "path": ["auth", "send-otp"]
+            },
+            "description": "Send OTP to mobile number for authentication"
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"+919876543210\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/auth/verify-otp",
+              "host": ["{{api_url}}"],
+              "path": ["auth", "verify-otp"]
+            },
+            "description": "Verify OTP and get access token"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const response = pm.response.json();",
+                  "  if (response.success && response.token) {",
+                  "    pm.collectionVariables.set('access_token', response.token);",
+                  "    console.log('Access token saved:', response.token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"+919876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/auth/resend-otp",
+              "host": ["{{api_url}}"],
+              "path": ["auth", "resend-otp"]
+            }
+          }
+        },
+        {
+          "name": "Google OAuth Redirect",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/auth/google/redirect",
+              "host": ["{{api_url}}"],
+              "path": ["auth", "google", "redirect"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/auth/logout",
+              "host": ["{{api_url}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 User Management",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/user/profile",
+              "host": ["{{api_url}}"],
+              "path": ["user", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/user/profile",
+              "host": ["{{api_url}}"],
+              "path": ["user", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/user/dashboard",
+              "host": ["{{api_url}}"],
+              "path": ["user", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Get Usage Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/user/usage-stats",
+              "host": ["{{api_url}}"],
+              "path": ["user", "usage-stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/user/preferences",
+              "host": ["{{api_url}}"],
+              "path": ["user", "preferences"]
+            }
+          }
+        },
+        {
+          "name": "Update Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"language\": \"ta\",\n  \"theme\": \"dark\",\n  \"notifications\": {\n    \"push_enabled\": true,\n    \"email_enabled\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/user/preferences",
+              "host": ["{{api_url}}"],
+              "path": ["user", "preferences"]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/user/subscription",
+              "host": ["{{api_url}}"],
+              "path": ["user", "subscription"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎨 Themes",
+      "item": [
+        {
+          "name": "Get All Themes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/public/themes",
+              "host": ["{{api_url}}"],
+              "path": ["public", "themes"]
+            }
+          }
+        },
+        {
+          "name": "Get Theme by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/public/themes/1",
+              "host": ["{{api_url}}"],
+              "path": ["public", "themes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Theme Templates",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/public/themes/1/templates?per_page=20",
+              "host": ["{{api_url}}"],
+              "path": ["public", "themes", "1", "templates"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Templates",
+      "item": [
+        {
+          "name": "Get All Templates",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/public/templates?sort_by=featured_usage&per_page=20",
+              "host": ["{{api_url}}"],
+              "path": ["public", "templates"],
+              "query": [
+                {
+                  "key": "sort_by",
+                  "value": "featured_usage"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Featured Templates",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/public/templates/featured",
+              "host": ["{{api_url}}"],
+              "path": ["public", "templates", "featured"]
+            }
+          }
+        },
+        {
+          "name": "Search Templates",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/public/templates/search?q=love&theme_id=1",
+              "host": ["{{api_url}}"],
+              "path": ["public", "templates", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "love"
+                },
+                {
+                  "key": "theme_id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Template by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/public/templates/1",
+              "host": ["{{api_url}}"],
+              "path": ["public", "templates", "1"]
+            }
+          }
+        },
+        {
+          "name": "Use Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/templates/1/use",
+              "host": ["{{api_url}}"],
+              "path": ["templates", "1", "use"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Favorite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/templates/1/favorite",
+              "host": ["{{api_url}}"],
+              "path": ["templates", "1", "favorite"]
+            }
+          }
+        },
+        {
+          "name": "Rate Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"review\": \"Excellent template with beautiful design!\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/templates/1/rate",
+              "host": ["{{api_url}}"],
+              "path": ["templates", "1", "rate"]
+            }
+          }
+        },
+        {
+          "name": "Get My Favorites",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/templates/favorites",
+              "host": ["{{api_url}}"],
+              "path": ["templates", "favorites"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Generation",
+      "item": [
+        {
+          "name": "Generate Tamil Quote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"love\",\n  \"style\": \"inspirational\",\n  \"length\": \"medium\",\n  \"context\": \"for social media sharing\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/ai/generate-quote",
+              "host": ["{{api_url}}"],
+              "path": ["ai", "generate-quote"]
+            },
+            "description": "Generate a Tamil quote using AI based on theme and preferences"
+          }
+        },
+        {
+          "name": "Caption Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image_url\": \"https://example.com/image.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/ai/caption-image",
+              "host": ["{{api_url}}"],
+              "path": ["ai", "caption-image"]
+            }
+          }
+        },
+        {
+          "name": "Get AI Quota",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/ai/quota",
+              "host": ["{{api_url}}"],
+              "path": ["ai", "quota"]
+            }
+          }
+        },
+        {
+          "name": "Get AI Usage Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/ai/usage?days=30",
+              "host": ["{{api_url}}"],
+              "path": ["ai", "usage"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Available Models",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/ai/models",
+              "host": ["{{api_url}}"],
+              "path": ["ai", "models"]
+            }
+          }
+        },
+        {
+          "name": "Regenerate Quote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"generation_id\": 123\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/ai/regenerate",
+              "host": ["{{api_url}}"],
+              "path": ["ai", "regenerate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📁 File Upload",
+      "item": [
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{api_url}}/uploads/avatar",
+              "host": ["{{api_url}}"],
+              "path": ["uploads", "avatar"]
+            }
+          }
+        },
+        {
+          "name": "Upload Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "type",
+                  "value": "user_upload",
+                  "type": "text"
+                },
+                {
+                  "key": "quality",
+                  "value": "85",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{api_url}}/uploads/image",
+              "host": ["{{api_url}}"],
+              "path": ["uploads", "image"]
+            }
+          }
+        },
+        {
+          "name": "Get Upload Limits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/uploads/limits",
+              "host": ["{{api_url}}"],
+              "path": ["uploads", "limits"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Support & Feedback",
+      "item": [
+        {
+          "name": "Submit Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"feature_request\",\n  \"subject\": \"New feature suggestion\",\n  \"message\": \"It would be great to have video status support\",\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/feedback/submit",
+              "host": ["{{api_url}}"],
+              "path": ["feedback", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Get My Feedback",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/feedback",
+              "host": ["{{api_url}}"],
+              "path": ["feedback"]
+            }
+          }
+        },
+        {
+          "name": "Get FAQ",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/public/faq",
+              "host": ["{{api_url}}"],
+              "path": ["public", "faq"]
+            }
+          }
+        },
+        {
+          "name": "Get Contact Info",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/public/contact",
+              "host": ["{{api_url}}"],
+              "path": ["public", "contact"]
+            }
+          }
+        },
+        {
+          "name": "Submit App Rating",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"review\": \"Amazing app for Tamil status creation!\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/feedback/app-rating",
+              "host": ["{{api_url}}"],
+              "path": ["feedback", "app-rating"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Utility",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          }
+        },
+        {
+          "name": "Get User Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "console.log('🚀 Tamil Status Creator API Request');",
+          "console.log('URL:', pm.request.url.toString());",
+          "console.log('Method:', pm.request.method);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "console.log('📊 Response Status:', pm.response.code);",
+          "console.log('⏱️ Response Time:', pm.response.responseTime + 'ms');",
+          "",
+          "// Global tests for all requests",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has proper Content-Type', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});",
+          "",
+          "// Success response structure test",
+          "if (pm.response.code === 200 || pm.response.code === 201) {",
+          "    pm.test('Successful response has success field', function () {",
+          "        const response = pm.response.json();",
+          "        pm.expect(response).to.have.property('success');",
+          "    });",
+          "}",
+          "",
+          "// Error response structure test",
+          "if (pm.response.code >= 400) {",
+          "    pm.test('Error response has proper structure', function () {",
+          "        const response = pm.response.json();",
+          "        pm.expect(response).to.have.property('success');",
+          "        pm.expect(response).to.have.property('message');",
+          "        pm.expect(response.success).to.be.false;",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+}

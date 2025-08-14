@@ -38,22 +38,47 @@ Route::prefix('v1')->group(function () {
     // Public content routes
     Route::prefix('public')->group(function () {
         Route::get('/themes', [\App\Http\Controllers\ThemeController::class, 'index']);
+        Route::get('/themes/{theme}', [\App\Http\Controllers\ThemeController::class, 'show']);
         Route::get('/themes/{theme}/templates', [\App\Http\Controllers\TemplateController::class, 'byTheme']);
+        Route::get('/templates', [\App\Http\Controllers\TemplateController::class, 'index']);
+        Route::get('/templates/{template}', [\App\Http\Controllers\TemplateController::class, 'show']);
         Route::get('/templates/featured', [\App\Http\Controllers\TemplateController::class, 'featured']);
         Route::get('/templates/search', [\App\Http\Controllers\TemplateController::class, 'search']);
+        Route::get('/templates/{template}/ratings', [\App\Http\Controllers\TemplateController::class, 'getTemplateRatings']);
+        Route::get('/faq', [\App\Http\Controllers\FeedbackController::class, 'faq']);
+        Route::get('/contact', [\App\Http\Controllers\FeedbackController::class, 'contactInfo']);
     });
 });
 
 // Protected routes (require authentication)
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     // User management
-    Route::prefix('user')->group(function () {
+    Route::prefix('user')->middleware('throttle:profile')->group(function () {
         Route::get('/profile', [\App\Http\Controllers\UserController::class, 'profile']);
         Route::put('/profile', [\App\Http\Controllers\UserController::class, 'updateProfile']);
         Route::get('/subscription', [\App\Http\Controllers\UserController::class, 'subscription']);
         Route::get('/usage-stats', [\App\Http\Controllers\UserController::class, 'usageStats']);
         Route::get('/creations', [\App\Http\Controllers\UserController::class, 'creations']);
+        Route::get('/dashboard', [\App\Http\Controllers\UserController::class, 'dashboard']);
+        Route::get('/preferences', [\App\Http\Controllers\UserController::class, 'preferences']);
+        Route::put('/preferences', [\App\Http\Controllers\UserController::class, 'updatePreferences']);
         Route::delete('/account', [\App\Http\Controllers\UserController::class, 'deleteAccount']);
+    });
+
+    // Feedback and Support
+    Route::prefix('feedback')->middleware('throttle:profile')->group(function () {
+        Route::post('/submit', [\App\Http\Controllers\FeedbackController::class, 'submit']);
+        Route::get('/', [\App\Http\Controllers\FeedbackController::class, 'index']);
+        Route::get('/{feedback}', [\App\Http\Controllers\FeedbackController::class, 'show']);
+        Route::post('/app-rating', [\App\Http\Controllers\FeedbackController::class, 'submitAppRating']);
+    });
+
+    // File uploads
+    Route::prefix('uploads')->group(function () {
+        Route::post('/avatar', [\App\Http\Controllers\UploadController::class, 'avatar']);
+        Route::post('/image', [\App\Http\Controllers\UploadController::class, 'image']);
+        Route::delete('/file', [\App\Http\Controllers\UploadController::class, 'deleteFile']);
+        Route::get('/limits', [\App\Http\Controllers\UploadController::class, 'getUploadLimits']);
     });
 
     // Authentication management
@@ -74,16 +99,33 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     // Template management
     Route::prefix('templates')->group(function () {
         Route::get('/', [\App\Http\Controllers\TemplateController::class, 'index']);
+        Route::get('/favorites', [\App\Http\Controllers\TemplateController::class, 'favorites']);
         Route::get('/{template}', [\App\Http\Controllers\TemplateController::class, 'show']);
         Route::post('/{template}/use', [\App\Http\Controllers\TemplateController::class, 'useTemplate']);
         Route::post('/{template}/favorite', [\App\Http\Controllers\TemplateController::class, 'toggleFavorite']);
+        Route::post('/{template}/rate', [\App\Http\Controllers\TemplateController::class, 'rateTemplate']);
+        Route::get('/{template}/ratings', [\App\Http\Controllers\TemplateController::class, 'getTemplateRatings']);
+    });
+
+    // Theme management
+    Route::prefix('themes')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ThemeController::class, 'index']);
+        Route::get('/{theme}', [\App\Http\Controllers\ThemeController::class, 'show']);
+        Route::get('/{theme}/templates', [\App\Http\Controllers\TemplateController::class, 'byTheme']);
     });
 
     // AI Generation (with quota checking)
     Route::middleware('ai_quota')->prefix('ai')->group(function () {
         Route::post('/generate-quote', [\App\Http\Controllers\AIController::class, 'generateQuote']);
         Route::post('/caption-image', [\App\Http\Controllers\AIController::class, 'captionImage']);
+        Route::post('/regenerate', [\App\Http\Controllers\AIController::class, 'regenerate']);
+    });
+
+    // AI Information (no quota needed)
+    Route::prefix('ai')->group(function () {
         Route::get('/quota', [\App\Http\Controllers\AIController::class, 'quota']);
+        Route::get('/models', [\App\Http\Controllers\AIController::class, 'models']);
+        Route::get('/usage', [\App\Http\Controllers\AIController::class, 'usage']);
     });
 
     // User creations

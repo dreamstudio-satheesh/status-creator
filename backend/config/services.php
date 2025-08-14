@@ -48,4 +48,15 @@ return [
         'template_id' => env('MSG91_TEMPLATE_ID'),
     ],
 
+    'openrouter' => [
+        'api_key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'meta-llama/llama-3.2-3b-instruct:free'),
+        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
+    ],
+
+    'huggingface' => [
+        'api_key' => env('HUGGINGFACE_API_KEY'),
+        'caption_model' => env('CAPTION_MODEL', 'Salesforce/blip-image-captioning-base'),
+    ],
+
 ];
