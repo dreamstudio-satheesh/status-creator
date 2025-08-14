@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Theme;
 use App\Models\Template;
-use App\Models\StatusHistory;
-use App\Models\Feedback;
+use App\Models\UserCreation;
+use App\Models\UserFeedback;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,8 +26,10 @@ class DashboardController extends Controller
             return [
                 'users' => [
                     'total' => User::count(),
-                    'active' => User::where('is_active', true)->count(),
-                    'premium' => User::where('is_premium', true)->count(),
+                    'active' => User::whereNotNull('email_verified_at')->count(),
+                    'premium' => User::where('subscription_type', 'premium')
+                        ->where('subscription_expires_at', '>', now())
+                        ->count(),
                     'today' => User::whereDate('created_at', today())->count(),
                     'this_week' => User::whereBetween('created_at', [
                         Carbon::now()->startOfWeek(),
@@ -41,14 +43,14 @@ class DashboardController extends Controller
                 'content' => [
                     'themes' => Theme::where('is_active', true)->count(),
                     'templates' => Template::where('is_active', true)->count(),
-                    'status_generated' => StatusHistory::count(),
-                    'status_today' => StatusHistory::whereDate('created_at', today())->count(),
+                    'status_generated' => UserCreation::count(),
+                    'status_today' => UserCreation::whereDate('created_at', today())->count(),
                 ],
                 'engagement' => [
-                    'total_feedback' => Feedback::count(),
-                    'positive_feedback' => Feedback::where('rating', '>=', 4)->count(),
-                    'avg_rating' => Feedback::avg('rating') ?? 0,
-                    'recent_feedback' => Feedback::where('created_at', '>=', Carbon::now()->subDays(7))->count(),
+                    'total_feedback' => UserFeedback::count(),
+                    'positive_feedback' => UserFeedback::where('rating', '>=', 4)->count(),
+                    'avg_rating' => UserFeedback::avg('rating') ?? 0,
+                    'recent_feedback' => UserFeedback::where('created_at', '>=', Carbon::now()->subDays(7))->count(),
                 ],
                 'system' => [
                     'disk_usage' => $this->getDiskUsage(),
@@ -82,7 +84,7 @@ class DashboardController extends Controller
                             'user' => $user
                         ];
                     }),
-                'recent_feedback' => Feedback::with('user')
+                'recent_feedback' => UserFeedback::with('user')
                     ->latest()
                     ->limit(5)
                     ->get()
@@ -94,7 +96,7 @@ class DashboardController extends Controller
                             'feedback' => $feedback
                         ];
                     }),
-                'status_generated' => StatusHistory::with('user')
+                'status_generated' => UserCreation::with('user')
                     ->latest()
                     ->limit(5)
                     ->get()
@@ -136,7 +138,7 @@ class DashboardController extends Controller
         
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
-            $count = StatusHistory::whereDate('created_at', $date)->count();
+            $count = UserCreation::whereDate('created_at', $date)->count();
             $data[] = [
                 'date' => $date->format('M d'),
                 'count' => $count
@@ -153,9 +155,9 @@ class DashboardController extends Controller
         
         for ($i = $months - 1; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
-            $revenue = User::where('is_premium', true)
-                ->whereMonth('premium_until', $date->month)
-                ->whereYear('premium_until', $date->year)
+            $revenue = User::where('subscription_type', 'premium')
+                ->whereMonth('subscription_expires_at', $date->month)
+                ->whereYear('subscription_expires_at', $date->year)
                 ->count() * 9.99; // Assuming $9.99 premium price
             
             $data[] = [
@@ -169,14 +171,14 @@ class DashboardController extends Controller
 
     private function getTopThemesData()
     {
-        return Theme::withCount('statusHistories')
-            ->orderByDesc('status_histories_count')
+        return Theme::withCount('templates')
+            ->orderByDesc('templates_count')
             ->limit(5)
             ->get()
             ->map(function ($theme) {
                 return [
                     'name' => $theme->name,
-                    'count' => $theme->status_histories_count
+                    'count' => $theme->templates_count
                 ];
             });
     }

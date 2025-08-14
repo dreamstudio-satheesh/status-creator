@@ -70,7 +70,8 @@ namespace App\Http\Controllers;
  *     description="Administrative endpoints (admin access required)"
  * )
  */
-abstract class Controller
+abstract class Controller extends \Illuminate\Routing\Controller
 {
-    //
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+    use \Illuminate\Foundation\Validation\ValidatesRequests;
 }

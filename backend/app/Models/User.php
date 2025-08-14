@@ -26,6 +26,8 @@ class User extends Authenticatable
         'daily_ai_quota',
         'daily_ai_used',
         'last_quota_reset',
+        'preferences',
+        'phone',
     ];
 
     /**
@@ -47,6 +49,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'subscription_expires_at' => 'datetime',
             'last_quota_reset' => 'date',
+            'preferences' => 'array',
         ];
     }
 
@@ -99,6 +102,11 @@ class User extends Authenticatable
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    public function feedback()
+    {
+        return $this->hasMany(UserFeedback::class);
     }
 
     public function aiGenerationLogs()

@@ -75,7 +75,7 @@ class SubscriptionController extends Controller
         $user = Auth::user();
 
         // Check if user already has active subscription
-        if ($user->is_premium && $user->premium_until && $user->premium_until->isFuture()) {
+        if ($user->subscription_type === 'premium' && $user->subscription_expires_at && $user->subscription_expires_at->isFuture()) {
             return response()->json([
                 'success' => false,
                 'message' => 'You already have an active premium subscription'
@@ -118,7 +118,7 @@ class SubscriptionController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->is_premium) {
+        if ($user->subscription_type !== 'premium' || !$user->subscription_expires_at || $user->subscription_expires_at->isPast()) {
             return response()->json([
                 'success' => false,
                 'message' => 'No active subscription found'
@@ -150,7 +150,7 @@ class SubscriptionController extends Controller
             'success' => true,
             'message' => 'Subscription cancelled successfully. Premium benefits will remain active until the end of current billing period.',
             'data' => [
-                'expires_at' => $user->premium_until,
+                'expires_at' => $user->subscription_expires_at,
             ]
         ]);
     }

@@ -84,14 +84,14 @@ class WebhookController extends Controller
 
         // Update user premium status
         $user = $subscription->user;
-        $premiumUntil = $user->premium_until && $user->premium_until->isFuture() 
-            ? $user->premium_until->addDays($subscription->duration_days)
+        $subscriptionExpiresAt = $user->subscription_expires_at && $user->subscription_expires_at->isFuture() 
+            ? $user->subscription_expires_at->addDays($subscription->duration_days)
             : now()->addDays($subscription->duration_days);
 
         $user->update([
-            'is_premium' => true,
-            'premium_until' => $premiumUntil,
-            'ai_quota_used' => 0, // Reset quota
+            'subscription_type' => 'premium',
+            'subscription_expires_at' => $subscriptionExpiresAt,
+            'daily_ai_used' => 0, // Reset quota
         ]);
 
         Log::info('Premium subscription activated for user: ' . $user->id);

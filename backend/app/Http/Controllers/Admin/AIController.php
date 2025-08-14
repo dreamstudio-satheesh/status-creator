@@ -120,11 +120,11 @@ class AIController extends Controller
             ->selectRaw('
                 users.name,
                 users.email,
-                users.is_premium,
+                users.subscription_type,
                 COUNT(*) as total_requests,
                 SUM(ai_generation_logs.cost) as total_cost
             ')
-            ->groupBy('users.id', 'users.name', 'users.email', 'users.is_premium')
+            ->groupBy('users.id', 'users.name', 'users.email', 'users.subscription_type')
             ->orderByDesc('total_requests')
             ->limit(20)
             ->get();

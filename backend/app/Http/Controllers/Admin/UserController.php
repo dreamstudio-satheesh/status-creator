@@ -35,13 +35,14 @@ class UserController extends Controller
         if ($request->has('status')) {
             switch ($request->status) {
                 case 'active':
-                    $query->where('is_active', true);
+                    $query->whereNotNull('email_verified_at');
                     break;
                 case 'inactive':
-                    $query->where('is_active', false);
+                    $query->whereNull('email_verified_at');
                     break;
                 case 'premium':
-                    $query->where('is_premium', true);
+                    $query->where('subscription_type', 'premium')
+                          ->where('subscription_expires_at', '>', now());
                     break;
                 case 'verified':
                     $query->whereNotNull('email_verified_at');
@@ -64,8 +65,10 @@ class UserController extends Controller
 
         $stats = [
             'total' => User::count(),
-            'active' => User::where('is_active', true)->count(),
-            'premium' => User::where('is_premium', true)->count(),
+            'active' => User::whereNotNull('email_verified_at')->count(),
+            'premium' => User::where('subscription_type', 'premium')
+                ->where('subscription_expires_at', '>', now())
+                ->count(),
             'verified' => User::whereNotNull('email_verified_at')->count(),
             'today' => User::whereDate('created_at', today())->count(),
         ];
@@ -162,11 +165,11 @@ class UserController extends Controller
             $updateData['email_verified_at'] = null;
         }
 
-        if ($request->boolean('is_premium') && !$user->is_premium) {
-            $updateData['premium_until'] = now()->addMonth();
-            $updateData['ai_quota_used'] = 0;
-        } elseif (!$request->boolean('is_premium')) {
-            $updateData['premium_until'] = null;
+        if ($request->input('subscription_type') === 'premium' && $user->subscription_type !== 'premium') {
+            $updateData['subscription_expires_at'] = now()->addMonth();
+            $updateData['daily_ai_used'] = 0;
+        } elseif ($request->input('subscription_type') === 'free') {
+            $updateData['subscription_expires_at'] = null;
         }
 
         $user->update($updateData);
@@ -177,11 +180,8 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        // Soft delete user data
-        $user->update(['is_active' => false]);
-        
-        // Or hard delete if needed
-        // $user->delete();
+        // Hard delete user
+        $user->delete();
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User deactivated successfully');
@@ -189,7 +189,7 @@ class UserController extends Controller
 
     public function togglePremium(User $user)
     {
-        if ($user->is_premium) {
+        if ($user->subscription_type === 'premium' && $user->subscription_expires_at > now()) {
             $user->update([
                 'is_premium' => false,
                 'premium_until' => null,
@@ -207,7 +207,7 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'message' => $message,
-            'is_premium' => $user->is_premium
+            'is_premium' => ($user->subscription_type === 'premium' && $user->subscription_expires_at > now())
         ]);
     }
 
@@ -223,11 +223,11 @@ class UserController extends Controller
 
         switch ($request->action) {
             case 'activate':
-                $users->update(['is_active' => true]);
+                $users->update(['email_verified_at' => now()]);
                 $message = 'Users activated successfully';
                 break;
             case 'deactivate':
-                $users->update(['is_active' => false]);
+                $users->update(['email_verified_at' => null]);
                 $message = 'Users deactivated successfully';
                 break;
             case 'make_premium':
@@ -245,11 +245,9 @@ class UserController extends Controller
                 ]);
                 $message = 'Premium removed from users successfully';
                 break;
-            case 'verify_email':
-                $users->whereNull('email_verified_at')->update([
-                    'email_verified_at' => now()
-                ]);
-                $message = 'Users email verified successfully';
+            case 'delete':
+                $users->delete();
+                $message = 'Users deleted successfully';
                 break;
         }
 
