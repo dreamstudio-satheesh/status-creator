@@ -17,15 +17,15 @@ class ThemeController extends Controller
 
     public function index(Request $request)
     {
-        $query = Theme::withCount(['templates', 'statusHistories']);
+        $query = Theme::withCount(['templates']);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('category', 'like', "%{$search}%");
+                  ->orWhere('name_ta', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -38,45 +38,34 @@ class ThemeController extends Controller
             }
         }
 
-        // Filter by category
-        if ($request->has('category') && $request->category) {
-            $query->where('category', $request->category);
-        }
-
-        // Filter by premium status
-        if ($request->has('premium')) {
-            if ($request->premium === 'free') {
-                $query->where('is_premium', false);
-            } elseif ($request->premium === 'premium') {
-                $query->where('is_premium', true);
-            }
-        }
-
         $themes = $query->orderBy('created_at', 'desc')->paginate(20);
 
         $stats = [
             'total' => Theme::count(),
             'active' => Theme::where('is_active', true)->count(),
-            'premium' => Theme::where('is_premium', true)->count(),
-            'categories' => Theme::distinct('category')->count('category'),
+            'inactive' => Theme::where('is_active', false)->count(),
+            'templates' => \App\Models\Template::count(),
         ];
 
-        $categories = Theme::distinct('category')->pluck('category')->filter();
-
-        return view('admin.themes.index', compact('themes', 'stats', 'categories'));
+        return view('admin.themes.index', compact('themes', 'stats'));
     }
 
     public function show(Theme $theme)
     {
         $theme->load(['templates' => function($q) {
-            $q->withCount('statusHistories')->orderBy('created_at', 'desc');
+            $q->withCount('userCreations')->orderBy('created_at', 'desc');
         }]);
 
         $stats = [
             'total_templates' => $theme->templates()->count(),
             'active_templates' => $theme->templates()->where('is_active', true)->count(),
-            'usage_count' => $theme->statusHistories()->count(),
-            'recent_usage' => $theme->statusHistories()->where('created_at', '>=', now()->subDays(7))->count(),
+            'usage_count' => $theme->templates()->withCount('userCreations')->get()->sum('user_creations_count'),
+            'recent_usage' => $theme->templates()
+                ->withCount(['userCreations' => function($q) {
+                    $q->where('created_at', '>=', now()->subDays(7));
+                }])
+                ->get()
+                ->sum('user_creations_count'),
         ];
 
         return view('admin.themes.show', compact('theme', 'stats'));
@@ -84,47 +73,33 @@ class ThemeController extends Controller
 
     public function create()
     {
-        $categories = Theme::distinct('category')->pluck('category')->filter();
-        return view('admin.themes.create', compact('categories'));
+        return view('admin.themes.create');
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:themes,name',
+            'name_ta' => 'nullable|string|max:255',
             'description' => 'required|string',
-            'category' => 'required|string|max:100',
-            'color_scheme' => 'required|array',
-            'font_family' => 'nullable|string|max:100',
-            'background_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'preview_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'is_premium' => 'boolean',
+            'icon' => 'nullable|string|max:100',
+            'color' => 'nullable|string|max:50',
             'is_active' => 'boolean',
-            'sort_order' => 'nullable|integer',
+            'order_index' => 'nullable|integer',
         ]);
 
         $themeData = [
             'name' => $request->name,
             'slug' => Str::slug($request->name),
+            'name_ta' => $request->name_ta,
             'description' => $request->description,
-            'category' => $request->category,
-            'color_scheme' => $request->color_scheme,
-            'font_family' => $request->font_family,
-            'is_premium' => $request->boolean('is_premium'),
+            'icon' => $request->icon,
+            'color' => $request->color,
             'is_active' => $request->boolean('is_active', true),
-            'sort_order' => $request->sort_order ?? 0,
+            'order_index' => $request->order_index ?? 0,
         ];
 
-        // Handle file uploads
-        if ($request->hasFile('background_image')) {
-            $themeData['background_image'] = $request->file('background_image')
-                ->store('themes/backgrounds', 'public');
-        }
-
-        if ($request->hasFile('preview_image')) {
-            $themeData['preview_image'] = $request->file('preview_image')
-                ->store('themes/previews', 'public');
-        }
+        // Note: File uploads removed as they're not part of the current Theme model
 
         $theme = Theme::create($themeData);
 
@@ -134,55 +109,33 @@ class ThemeController extends Controller
 
     public function edit(Theme $theme)
     {
-        $categories = Theme::distinct('category')->pluck('category')->filter();
-        return view('admin.themes.edit', compact('theme', 'categories'));
+        return view('admin.themes.edit', compact('theme'));
     }
 
     public function update(Request $request, Theme $theme)
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:themes,name,' . $theme->id,
+            'name_ta' => 'nullable|string|max:255',
             'description' => 'required|string',
-            'category' => 'required|string|max:100',
-            'color_scheme' => 'required|array',
-            'font_family' => 'nullable|string|max:100',
-            'background_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'preview_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'is_premium' => 'boolean',
+            'icon' => 'nullable|string|max:100',
+            'color' => 'nullable|string|max:50',
             'is_active' => 'boolean',
-            'sort_order' => 'nullable|integer',
+            'order_index' => 'nullable|integer',
         ]);
 
         $themeData = [
             'name' => $request->name,
             'slug' => Str::slug($request->name),
+            'name_ta' => $request->name_ta,
             'description' => $request->description,
-            'category' => $request->category,
-            'color_scheme' => $request->color_scheme,
-            'font_family' => $request->font_family,
-            'is_premium' => $request->boolean('is_premium'),
+            'icon' => $request->icon,
+            'color' => $request->color,
             'is_active' => $request->boolean('is_active'),
-            'sort_order' => $request->sort_order ?? 0,
+            'order_index' => $request->order_index ?? 0,
         ];
 
-        // Handle file uploads
-        if ($request->hasFile('background_image')) {
-            // Delete old image
-            if ($theme->background_image) {
-                Storage::disk('public')->delete($theme->background_image);
-            }
-            $themeData['background_image'] = $request->file('background_image')
-                ->store('themes/backgrounds', 'public');
-        }
-
-        if ($request->hasFile('preview_image')) {
-            // Delete old image
-            if ($theme->preview_image) {
-                Storage::disk('public')->delete($theme->preview_image);
-            }
-            $themeData['preview_image'] = $request->file('preview_image')
-                ->store('themes/previews', 'public');
-        }
+        // Note: File uploads removed as they're not part of the current Theme model
 
         $theme->update($themeData);
 
@@ -198,13 +151,7 @@ class ThemeController extends Controller
                 ->with('error', 'Cannot delete theme with associated templates. Please remove templates first.');
         }
 
-        // Delete associated files
-        if ($theme->background_image) {
-            Storage::disk('public')->delete($theme->background_image);
-        }
-        if ($theme->preview_image) {
-            Storage::disk('public')->delete($theme->preview_image);
-        }
+        // Note: No files to delete as they're not part of the current Theme model
 
         $theme->delete();
 
@@ -227,7 +174,7 @@ class ThemeController extends Controller
     public function bulkAction(Request $request)
     {
         $request->validate([
-            'action' => 'required|in:activate,deactivate,make_premium,make_free,delete',
+            'action' => 'required|in:activate,deactivate,delete',
             'theme_ids' => 'required|array',
             'theme_ids.*' => 'exists:themes,id'
         ]);
@@ -243,14 +190,6 @@ class ThemeController extends Controller
                 $themes->update(['is_active' => false]);
                 $message = 'Themes deactivated successfully';
                 break;
-            case 'make_premium':
-                $themes->update(['is_premium' => true]);
-                $message = 'Themes marked as premium successfully';
-                break;
-            case 'make_free':
-                $themes->update(['is_premium' => false]);
-                $message = 'Themes marked as free successfully';
-                break;
             case 'delete':
                 // Check for templates before deleting
                 $themesWithTemplates = $themes->withCount('templates')
@@ -262,14 +201,7 @@ class ThemeController extends Controller
                         ->with('error', 'Cannot delete themes with associated templates.');
                 }
                 
-                $themes->each(function($theme) {
-                    if ($theme->background_image) {
-                        Storage::disk('public')->delete($theme->background_image);
-                    }
-                    if ($theme->preview_image) {
-                        Storage::disk('public')->delete($theme->preview_image);
-                    }
-                });
+                // Note: No files to delete as they're not part of the current Theme model
                 
                 $themes->delete();
                 $message = 'Themes deleted successfully';

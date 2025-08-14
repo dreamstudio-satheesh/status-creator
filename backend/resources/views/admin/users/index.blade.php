@@ -1,28 +1,31 @@
 @extends('admin.layouts.app')
 
 @section('title', 'Users Management')
+@section('page_title', 'Users')
+@section('page_subtitle', 'Manage your application users')
 
 @section('content')
-<div>
-    <!-- Header -->
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-admin-800">Users Management</h1>
-            <p class="mt-1 text-sm text-admin-600">Manage your application users</p>
-        </div>
-        <div class="mt-4 sm:mt-0">
-            <a href="{{ route('admin.users.create') }}" class="admin-btn-primary">
+<div class="space-responsive">
+    <!-- Header Actions -->
+    <div class="premium-card p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+            <div class="flex-1 min-w-0">
+                <p class="text-slate-600">Total {{ number_format($stats['total']) }} users registered</p>
+            </div>
+            <div class="flex space-x-3">
+            <a href="{{ route('admin.users.create') }}" class="btn-primary-premium">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
                 Add New User
             </a>
+            </div>
         </div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div class="admin-card">
+    <div class="grid-stats">
+        <div class="stats-card-premium">
             <div class="flex items-center">
                 <div class="flex-shrink-0 bg-primary-100 rounded-lg p-3">
                     <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,13 +33,13 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-admin-600">Total Users</p>
-                    <p class="text-2xl font-bold text-admin-900">{{ number_format($stats['total']) }}</p>
+                    <p class="text-sm font-medium text-slate-500">Total Users</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ number_format($stats['total']) }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="admin-card">
+        <div class="stats-card-premium">
             <div class="flex items-center">
                 <div class="flex-shrink-0 bg-success-100 rounded-lg p-3">
                     <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,13 +47,13 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-admin-600">Active Users</p>
-                    <p class="text-2xl font-bold text-admin-900">{{ number_format($stats['active']) }}</p>
+                    <p class="text-sm font-medium text-slate-500">Active Users</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ number_format($stats['active']) }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="admin-card">
+        <div class="stats-card-premium">
             <div class="flex items-center">
                 <div class="flex-shrink-0 bg-warning-100 rounded-lg p-3">
                     <svg class="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,13 +61,13 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-admin-600">Premium Users</p>
-                    <p class="text-2xl font-bold text-admin-900">{{ number_format($stats['premium']) }}</p>
+                    <p class="text-sm font-medium text-slate-500">Premium Users</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ number_format($stats['premium']) }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="admin-card">
+        <div class="stats-card-premium">
             <div class="flex items-center">
                 <div class="flex-shrink-0 bg-info-100 rounded-lg p-3">
                     <svg class="w-6 h-6 text-info-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,13 +75,13 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-admin-600">Verified</p>
-                    <p class="text-2xl font-bold text-admin-900">{{ number_format($stats['verified']) }}</p>
+                    <p class="text-sm font-medium text-slate-500">Verified</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ number_format($stats['verified']) }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="admin-card">
+        <div class="stats-card-premium">
             <div class="flex items-center">
                 <div class="flex-shrink-0 bg-purple-100 rounded-lg p-3">
                     <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,27 +89,27 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-admin-600">Today</p>
-                    <p class="text-2xl font-bold text-admin-900">{{ number_format($stats['today']) }}</p>
+                    <p class="text-sm font-medium text-slate-500">Today</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ number_format($stats['today']) }}</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="admin-card mb-6">
+    <div class="premium-card mb-6">
         <form method="GET" action="{{ route('admin.users.index') }}" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                    <label for="search" class="admin-label">Search</label>
+                    <label for="search" class="label-premium">Search</label>
                     <input type="text" name="search" id="search" value="{{ request('search') }}"
                            placeholder="Name, email or phone"
-                           class="admin-input">
+                           class="input-premium">
                 </div>
                 
                 <div>
-                    <label for="status" class="admin-label">Status</label>
-                    <select name="status" id="status" class="admin-input">
+                    <label for="status" class="label-premium">Status</label>
+                    <select name="status" id="status" class="input-premium">
                         <option value="">All Status</option>
                         <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -117,23 +120,23 @@
                 </div>
                 
                 <div>
-                    <label for="date_from" class="admin-label">From Date</label>
+                    <label for="date_from" class="label-premium">From Date</label>
                     <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}"
-                           class="admin-input">
+                           class="input-premium">
                 </div>
                 
                 <div>
-                    <label for="date_to" class="admin-label">To Date</label>
+                    <label for="date_to" class="label-premium">To Date</label>
                     <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}"
-                           class="admin-input">
+                           class="input-premium">
                 </div>
             </div>
             
-            <div class="flex justify-end space-x-2">
-                <a href="{{ route('admin.users.index') }}" class="admin-btn-secondary">
+            <div class="flex justify-end space-x-3">
+                <a href="{{ route('admin.users.index') }}" class="btn-secondary-premium">
                     Clear Filters
                 </a>
-                <button type="submit" class="admin-btn-primary">
+                <button type="submit" class="btn-primary-premium">
                     Apply Filters
                 </button>
             </div>
@@ -141,40 +144,28 @@
     </div>
 
     <!-- Users Table -->
-    <div class="admin-card overflow-hidden">
+    <div class="premium-card overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-admin-200">
-                <thead class="bg-admin-50">
+            <table class="table-premium">
+                <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-admin-500 uppercase tracking-wider">
-                            <input type="checkbox" class="rounded border-admin-300 text-primary-600 focus:ring-primary-500">
+                        <th>
+                            <input type="checkbox" class="rounded border-slate-300 text-primary-600 focus:ring-primary-500">
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-admin-500 uppercase tracking-wider">
-                            User
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-admin-500 uppercase tracking-wider">
-                            Contact
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-admin-500 uppercase tracking-wider">
-                            Status
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-admin-500 uppercase tracking-wider">
-                            Subscription
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-admin-500 uppercase tracking-wider">
-                            Joined
-                        </th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-admin-500 uppercase tracking-wider">
-                            Actions
-                        </th>
+                        <th>User</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>Subscription</th>
+                        <th>Joined</th>
+                        <th class="text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-admin-200">
+                <tbody class="divide-y divide-slate-200">
                     @forelse($users as $user)
-                    <tr class="hover:bg-admin-50">
+                    <tr class="hover:bg-slate-50">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <input type="checkbox" name="user_ids[]" value="{{ $user->id }}"
-                                   class="rounded border-admin-300 text-primary-600 focus:ring-primary-500">
+                                   class="rounded border-slate-300 text-primary-600 focus:ring-primary-500">
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
@@ -190,19 +181,19 @@
                                     @endif
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-sm font-medium text-admin-900">
+                                    <div class="text-sm font-medium text-slate-900">
                                         {{ $user->name }}
                                     </div>
-                                    <div class="text-sm text-admin-500">
+                                    <div class="text-sm text-slate-500">
                                         ID: {{ $user->id }}
                                     </div>
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-admin-900">{{ $user->email }}</div>
+                            <div class="text-sm text-slate-900">{{ $user->email }}</div>
                             @if($user->mobile)
-                                <div class="text-sm text-admin-500">{{ $user->mobile }}</div>
+                                <div class="text-sm text-slate-500">{{ $user->mobile }}</div>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -221,20 +212,20 @@
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
                                     Premium
                                 </span>
-                                <div class="text-xs text-admin-500 mt-1">
+                                <div class="text-xs text-slate-500 mt-1">
                                     Expires: {{ $user->subscription_expires_at->format('M d, Y') }}
                                 </div>
                             @else
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-admin-100 text-admin-800">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-800">
                                     Free
                                 </span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-admin-500">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                             {{ $user->created_at->format('M d, Y') }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div class="flex items-center justify-end space-x-2">
+                            <div class="flex items-center justify-end space-x-3">
                                 <a href="{{ route('admin.users.show', $user) }}" 
                                    class="text-info-600 hover:text-info-900">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,7 +260,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-4 text-center text-admin-500">
+                        <td colspan="7" class="px-6 py-4 text-center text-slate-500">
                             No users found.
                         </td>
                     </tr>
@@ -279,7 +270,7 @@
         </div>
 
         <!-- Pagination -->
-        <div class="bg-white px-4 py-3 border-t border-admin-200 sm:px-6">
+        <div class="bg-slate-50 px-4 py-3 border-t border-slate-200 sm:px-6">
             {{ $users->withQueryString()->links() }}
         </div>
     </div>

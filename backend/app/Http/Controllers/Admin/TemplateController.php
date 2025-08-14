@@ -19,7 +19,7 @@ class TemplateController extends Controller
 
     public function index(Request $request)
     {
-        $query = Template::with('theme')->withCount(['statusHistories', 'ratings']);
+        $query = Template::with('theme')->withCount(['userCreations']);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -45,10 +45,7 @@ class TemplateController extends Controller
             }
         }
 
-        // Filter by type
-        if ($request->has('type') && $request->type) {
-            $query->where('type', $request->type);
-        }
+        // Note: Type filtering removed as 'type' column doesn't exist
 
         // Filter by premium status
         if ($request->has('premium')) {
@@ -65,26 +62,23 @@ class TemplateController extends Controller
             'total' => Template::count(),
             'active' => Template::where('is_active', true)->count(),
             'premium' => Template::where('is_premium', true)->count(),
-            'avg_rating' => Template::whereHas('ratings')->withAvg('ratings', 'rating')->get()->avg('ratings_avg_rating') ?? 0,
+            'with_user_creations' => Template::has('userCreations')->count(),
         ];
 
         $themes = Theme::where('is_active', true)->orderBy('name')->get();
-        $types = Template::distinct('type')->pluck('type')->filter();
 
-        return view('admin.templates.index', compact('templates', 'stats', 'themes', 'types'));
+        return view('admin.templates.index', compact('templates', 'stats', 'themes'));
     }
 
     public function show(Template $template)
     {
-        $template->load(['theme', 'ratings.user', 'statusHistories' => function($q) {
+        $template->load(['theme', 'userCreations' => function($q) {
             $q->with('user')->latest()->limit(10);
         }]);
 
         $stats = [
-            'usage_count' => $template->statusHistories()->count(),
-            'avg_rating' => $template->ratings()->avg('rating') ?? 0,
-            'total_ratings' => $template->ratings()->count(),
-            'recent_usage' => $template->statusHistories()->where('created_at', '>=', now()->subDays(7))->count(),
+            'usage_count' => $template->userCreations()->count(),
+            'recent_usage' => $template->userCreations()->where('created_at', '>=', now()->subDays(7))->count(),
         ];
 
         return view('admin.templates.show', compact('template', 'stats'));
@@ -93,43 +87,51 @@ class TemplateController extends Controller
     public function create()
     {
         $themes = Theme::where('is_active', true)->orderBy('name')->get();
-        $types = ['status', 'quote', 'greeting', 'motivational', 'funny', 'love', 'friendship'];
         
-        return view('admin.templates.create', compact('themes', 'types'));
+        return view('admin.templates.create', compact('themes'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'content' => 'required|string',
             'theme_id' => 'required|exists:themes,id',
-            'type' => 'required|string|max:50',
-            'tags' => 'nullable|string',
-            'preview_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'title' => 'required|string|max:255',
+            'background_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'quote_text' => 'required|string',
+            'quote_text_ta' => 'nullable|string',
+            'font_family' => 'nullable|string|max:100',
+            'font_size' => 'nullable|integer|min:8|max:72',
+            'text_color' => 'nullable|string|max:7',
+            'text_alignment' => 'nullable|in:left,center,right',
+            'padding' => 'nullable|integer|min:0|max:100',
             'is_premium' => 'boolean',
-            'is_active' => 'boolean',
             'is_featured' => 'boolean',
-            'sort_order' => 'nullable|integer',
+            'is_active' => 'boolean',
+            'image_caption' => 'nullable|string',
         ]);
 
         $templateData = [
-            'name' => $request->name,
-            'slug' => Str::slug($request->name),
-            'content' => $request->content,
             'theme_id' => $request->theme_id,
-            'type' => $request->type,
-            'tags' => $request->tags,
+            'title' => $request->title,
+            'quote_text' => $request->quote_text,
+            'quote_text_ta' => $request->quote_text_ta,
+            'font_family' => $request->font_family,
+            'font_size' => $request->font_size,
+            'text_color' => $request->text_color,
+            'text_alignment' => $request->text_alignment ?? 'center',
+            'padding' => $request->padding ?? 20,
             'is_premium' => $request->boolean('is_premium'),
-            'is_active' => $request->boolean('is_active', true),
             'is_featured' => $request->boolean('is_featured'),
-            'sort_order' => $request->sort_order ?? 0,
+            'is_active' => $request->boolean('is_active', true),
+            'ai_generated' => false,
+            'usage_count' => 0,
+            'image_caption' => $request->image_caption,
         ];
 
-        // Handle preview image upload
-        if ($request->hasFile('preview_image')) {
-            $templateData['preview_image'] = $request->file('preview_image')
-                ->store('templates/previews', 'public');
+        // Handle background image upload
+        if ($request->hasFile('background_image')) {
+            $templateData['background_image'] = $request->file('background_image')
+                ->store('templates/backgrounds', 'public');
         }
 
         $template = Template::create($templateData);
@@ -141,47 +143,53 @@ class TemplateController extends Controller
     public function edit(Template $template)
     {
         $themes = Theme::where('is_active', true)->orderBy('name')->get();
-        $types = ['status', 'quote', 'greeting', 'motivational', 'funny', 'love', 'friendship'];
         
-        return view('admin.templates.edit', compact('template', 'themes', 'types'));
+        return view('admin.templates.edit', compact('template', 'themes'));
     }
 
     public function update(Request $request, Template $template)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'content' => 'required|string',
             'theme_id' => 'required|exists:themes,id',
-            'type' => 'required|string|max:50',
-            'tags' => 'nullable|string',
-            'preview_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'title' => 'required|string|max:255',
+            'background_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'quote_text' => 'required|string',
+            'quote_text_ta' => 'nullable|string',
+            'font_family' => 'nullable|string|max:100',
+            'font_size' => 'nullable|integer|min:8|max:72',
+            'text_color' => 'nullable|string|max:7',
+            'text_alignment' => 'nullable|in:left,center,right',
+            'padding' => 'nullable|integer|min:0|max:100',
             'is_premium' => 'boolean',
-            'is_active' => 'boolean',
             'is_featured' => 'boolean',
-            'sort_order' => 'nullable|integer',
+            'is_active' => 'boolean',
+            'image_caption' => 'nullable|string',
         ]);
 
         $templateData = [
-            'name' => $request->name,
-            'slug' => Str::slug($request->name),
-            'content' => $request->content,
             'theme_id' => $request->theme_id,
-            'type' => $request->type,
-            'tags' => $request->tags,
+            'title' => $request->title,
+            'quote_text' => $request->quote_text,
+            'quote_text_ta' => $request->quote_text_ta,
+            'font_family' => $request->font_family,
+            'font_size' => $request->font_size,
+            'text_color' => $request->text_color,
+            'text_alignment' => $request->text_alignment ?? 'center',
+            'padding' => $request->padding ?? 20,
             'is_premium' => $request->boolean('is_premium'),
-            'is_active' => $request->boolean('is_active'),
             'is_featured' => $request->boolean('is_featured'),
-            'sort_order' => $request->sort_order ?? 0,
+            'is_active' => $request->boolean('is_active'),
+            'image_caption' => $request->image_caption,
         ];
 
-        // Handle preview image upload
-        if ($request->hasFile('preview_image')) {
+        // Handle background image upload
+        if ($request->hasFile('background_image')) {
             // Delete old image
-            if ($template->preview_image) {
-                Storage::disk('public')->delete($template->preview_image);
+            if ($template->background_image) {
+                Storage::disk('public')->delete($template->background_image);
             }
-            $templateData['preview_image'] = $request->file('preview_image')
-                ->store('templates/previews', 'public');
+            $templateData['background_image'] = $request->file('background_image')
+                ->store('templates/backgrounds', 'public');
         }
 
         $template->update($templateData);
@@ -193,8 +201,8 @@ class TemplateController extends Controller
     public function destroy(Template $template)
     {
         // Delete associated files
-        if ($template->preview_image) {
-            Storage::disk('public')->delete($template->preview_image);
+        if ($template->background_image) {
+            Storage::disk('public')->delete($template->background_image);
         }
 
         $template->delete();
@@ -219,7 +227,6 @@ class TemplateController extends Controller
     {
         $request->validate([
             'theme_id' => 'required|exists:themes,id',
-            'type' => 'required|string',
             'count' => 'required|integer|min:1|max:50',
             'prompts' => 'required|array|min:1',
             'prompts.*' => 'required|string|max:500',
@@ -227,7 +234,6 @@ class TemplateController extends Controller
 
         $job = BulkAIGeneration::dispatch(
             $request->theme_id,
-            $request->type,
             $request->prompts,
             $request->count,
             auth('admin')->id()
@@ -292,24 +298,16 @@ class TemplateController extends Controller
 
     public function analytics(Template $template)
     {
-        $usage = $template->statusHistories()
+        $usage = $template->userCreations()
             ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->where('created_at', '>=', now()->subDays(30))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        $ratings = $template->ratings()
-            ->selectRaw('rating, COUNT(*) as count')
-            ->groupBy('rating')
-            ->orderBy('rating')
-            ->get();
-
         return response()->json([
             'usage_chart' => $usage,
-            'ratings_chart' => $ratings,
-            'total_usage' => $template->statusHistories()->count(),
-            'avg_rating' => $template->ratings()->avg('rating'),
+            'total_usage' => $template->userCreations()->count(),
         ]);
     }
 }

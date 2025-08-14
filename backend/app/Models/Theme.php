@@ -43,6 +43,11 @@ class Theme extends Model
         return $this->hasMany(Template::class)->where('is_featured', true);
     }
 
+    public function userCreations()
+    {
+        return $this->hasManyThrough(UserCreation::class, Template::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {

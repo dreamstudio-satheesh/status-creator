@@ -1,53 +1,43 @@
 @extends('admin.layouts.app')
 
 @section('title', 'Create New User')
+@section('page_title', 'Create User')
+@section('page_subtitle', 'Add a new user to the system')
 
 @section('content')
-<div>
-    <!-- Header -->
-    <div class="mb-6 flex items-center">
-        <a href="{{ route('admin.users.index') }}" class="mr-4 text-admin-600 hover:text-admin-900">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-        </a>
-        <div>
-            <h1 class="text-2xl font-bold text-admin-800">Create New User</h1>
-            <p class="mt-1 text-sm text-admin-600">Add a new user to the system</p>
-        </div>
-    </div>
+<div class="max-w-4xl mx-auto space-responsive">
 
     <!-- Form -->
-    <div class="max-w-3xl">
+    <div class="premium-card">
         <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-6">
             @csrf
 
-            <div class="admin-card">
-                <h2 class="text-lg font-medium text-admin-900 mb-4">Basic Information</h2>
+            <div class="form-section">
+                <h3 class="section-title">Basic Information</h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="name" class="admin-label required">Name</label>
+                        <label for="name" class="label-premium">Name *</label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}" required
-                               class="admin-input @error('name') border-danger-300 @enderror">
+                               class="input-premium @error('name') border-danger-300 @enderror">
                         @error('name')
                             <p class="mt-1 text-sm text-danger-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="email" class="admin-label required">Email</label>
+                        <label for="email" class="label-premium">Email *</label>
                         <input type="email" name="email" id="email" value="{{ old('email') }}" required
-                               class="admin-input @error('email') border-danger-300 @enderror">
+                               class="input-premium @error('email') border-danger-300 @enderror">
                         @error('email')
                             <p class="mt-1 text-sm text-danger-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="phone" class="admin-label">Phone</label>
+                        <label for="phone" class="label-premium">Phone</label>
                         <input type="text" name="phone" id="phone" value="{{ old('phone') }}"
-                               class="admin-input @error('phone') border-danger-300 @enderror">
+                               class="input-premium @error('phone') border-danger-300 @enderror">
                         @error('phone')
                             <p class="mt-1 text-sm text-danger-600">{{ $message }}</p>
                         @enderror
