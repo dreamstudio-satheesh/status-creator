@@ -3,7 +3,7 @@
 @section('title', 'Create New User')
 
 @section('content')
-<div class="p-6">
+<div>
     <!-- Header -->
     <div class="mb-6 flex items-center">
         <a href="{{ route('admin.users.index') }}" class="mr-4 text-admin-600 hover:text-admin-900">

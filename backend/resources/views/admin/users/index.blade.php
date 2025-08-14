@@ -3,7 +3,7 @@
 @section('title', 'Users Management')
 
 @section('content')
-<div class="p-6">
+<div>
     <!-- Header -->
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>

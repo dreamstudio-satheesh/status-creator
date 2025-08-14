@@ -17,10 +17,13 @@
     <!-- Additional styles -->
     @stack('styles')
 </head>
-<body class="h-full font-sans antialiased">
-    <div class="min-h-full">
+<body class="h-full font-sans antialiased bg-admin-50">
+    <div class="h-full flex">
+        <!-- Mobile sidebar overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden opacity-0 pointer-events-none transition-opacity duration-300"></div>
+        
         <!-- Sidebar -->
-        <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-admin-200 transform -translate-x-full transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0">
+        <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-admin-200 transform -translate-x-full transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex lg:flex-col">
             <div class="flex flex-col h-full">
                 <!-- Logo -->
                 <div class="flex items-center justify-center h-16 px-4 bg-primary-600">
@@ -126,10 +129,10 @@
         </div>
 
         <!-- Main content -->
-        <div id="main-content" class="lg:pl-64">
+        <div id="main-content" class="flex-1 flex flex-col min-w-0 lg:pl-0">
             <!-- Top header -->
-            <header class="bg-white border-b border-admin-200 lg:border-none">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <header class="bg-white border-b border-admin-200 flex-shrink-0">
+                <div class="px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between h-16">
                         <div class="flex items-center">
                             <!-- Mobile menu button -->
@@ -183,8 +186,8 @@
             </header>
 
             <!-- Page content -->
-            <main class="flex-1">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <main class="flex-1 overflow-y-auto bg-admin-50">
+                <div class="py-6 px-4 sm:px-6 lg:px-8">
                     <!-- Success/Error Messages -->
                     @if(session('success'))
                         <div class="mb-4 bg-success-50 border border-success-200 text-success-700 px-4 py-3 rounded-lg" role="alert">
@@ -219,6 +222,20 @@
     @stack('scripts')
 
     <script>
+        // Sidebar toggle functionality
+        document.getElementById('sidebar-toggle')?.addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebar.classList.toggle('-translate-x-full');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+            } else {
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+            }
+        });
+
         // Simple dropdown toggle
         document.getElementById('user-menu-button')?.addEventListener('click', function() {
             const menu = document.getElementById('user-menu');
@@ -233,6 +250,15 @@
             if (button && menu && !button.contains(event.target) && !menu.contains(event.target)) {
                 menu.classList.add('hidden');
             }
+        });
+
+        // Close sidebar when clicking overlay
+        document.getElementById('sidebar-overlay')?.addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
         });
     </script>
 </body>

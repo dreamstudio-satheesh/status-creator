@@ -3,7 +3,7 @@
 @section('title', 'User Details - ' . $user->name)
 
 @section('content')
-<div class="p-6">
+<div>
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center">
