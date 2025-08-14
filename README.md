@@ -56,5 +56,5 @@ The system minimizes LLM API costs using **prebuilt templates**, **bulk AI gener
 
 1. **Clone repository**
    ```bash
-   git clone https://github.com/your-repo.git
-   cd ai-tamil-status-creator
+   git clone git@github.com:dreamstudio-satheesh/status-creator.git
+   cd status-creator
