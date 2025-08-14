@@ -52,9 +52,201 @@ The system minimizes LLM API costs using **prebuilt templates**, **bulk AI gener
 
 ---
 
-## Installation
+## 🐳 Docker Installation (Recommended)
+
+### Prerequisites
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- 4GB RAM minimum
+- 10GB free disk space
+
+### Quick Start
 
 1. **Clone repository**
    ```bash
    git clone git@github.com:dreamstudio-satheesh/status-creator.git
    cd status-creator
+   ```
+
+2. **Copy environment files**
+   ```bash
+   cp .env.example .env
+   cp backend/.env.example backend/.env
+   cp flutter/.env.example flutter/.env
+   ```
+
+3. **Start all services**
+   ```bash
+   make install  # First time setup
+   make up       # Start services
+   ```
+
+4. **Run migrations**
+   ```bash
+   make migrate
+   make seed     # Optional: Load sample data
+   ```
+
+5. **Access the application**
+   - Flutter App: http://localhost:8080
+   - Backend API: http://localhost:8000
+   - phpMyAdmin: http://localhost:8081
+   - Mailhog: http://localhost:8025
+   - MinIO Console: http://localhost:9001
+
+---
+
+## 🛠️ Docker Services
+
+### Core Services
+- **backend**: Laravel 11 API (PHP 8.2, Nginx, Supervisor)
+- **flutter**: Flutter development server with hot reload
+- **mysql**: MySQL 8.0 with Tamil (utf8mb4) support
+- **redis**: Redis cache and queue backend
+- **nginx**: Reverse proxy for routing
+
+### Development Tools
+- **phpmyadmin**: Database management UI
+- **mailhog**: Email testing interface
+- **minio**: S3-compatible local storage
+- **queue-worker**: Laravel queue processor
+- **scheduler**: Laravel task scheduler
+
+---
+
+## 📝 Useful Commands
+
+### Docker Management
+```bash
+make up          # Start all services
+make down        # Stop all services
+make restart     # Restart all services
+make logs        # View all logs
+make status      # Check service status
+make clean       # Remove containers and volumes
+```
+
+### Backend Commands
+```bash
+make shell-backend    # Access backend shell
+make migrate         # Run migrations
+make seed           # Seed database
+make fresh          # Fresh migration with seeding
+make cache-clear    # Clear all caches
+make test-backend   # Run tests
+make npm-build      # Build admin panel assets
+```
+
+### Flutter Commands
+```bash
+make shell-flutter      # Access flutter shell
+make flutter-clean      # Clean flutter project
+make flutter-build-web  # Build for web
+make flutter-build-apk  # Build APK
+```
+
+### Database Commands
+```bash
+make shell-mysql  # Access MySQL shell
+make backup-db    # Backup database
+make restore-db file=backup.sql  # Restore database
+```
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables
+Edit `.env` files in root, `backend/`, and `flutter/` directories:
+
+- **Root `.env`**: Docker service configurations
+- **`backend/.env`**: Laravel application settings
+- **`flutter/.env`**: Flutter app configuration
+
+### Default Credentials
+- **Admin Panel**: admin@example.com / admin123
+- **MySQL Root**: root / root_secret
+- **MySQL User**: status_user / secret_password
+- **MinIO**: minioadmin / minioadmin
+
+---
+
+## 📁 Project Structure
+```
+statusapp/
+├── backend/              # Laravel 11 API
+│   ├── app/             # Application code
+│   ├── database/        # Migrations & seeds
+│   ├── routes/          # API routes
+│   ├── storage/         # File storage
+│   └── docker/          # Docker configs
+├── flutter/             # Flutter mobile app
+│   ├── lib/            # Dart source code
+│   ├── assets/         # Images, fonts
+│   └── pubspec.yaml    # Dependencies
+├── mysql/              # Database setup
+│   ├── init.sql       # Initial schema
+│   └── my.cnf         # MySQL config
+├── nginx/              # Reverse proxy
+│   └── nginx.conf     # Nginx config
+├── docker-compose.yml  # Service orchestration
+├── Makefile           # Helper commands
+└── README.md          # Documentation
+```
+
+---
+
+## 🚀 Production Deployment
+
+### Using Docker Swarm
+```bash
+docker swarm init
+docker stack deploy -c docker-compose.prod.yml status-app
+```
+
+### Using Kubernetes
+Helm charts coming soon!
+
+---
+
+## 🔒 Security Notes
+
+1. Change all default passwords before production
+2. Use SSL certificates for HTTPS
+3. Configure firewall rules
+4. Enable Laravel production optimizations
+5. Set proper CORS headers
+6. Implement rate limiting
+
+---
+
+## 📚 API Documentation
+
+After starting the services, API documentation is available at:
+- Swagger UI: http://localhost:8000/api/documentation
+- Postman Collection: `backend/docs/postman_collection.json`
+
+---
+
+## 🐛 Troubleshooting
+
+### Port Conflicts
+If ports are already in use, modify the `.env` file:
+```env
+BACKEND_PORT=8001
+FLUTTER_PORT=8081
+MYSQL_PORT=3307
+```
+
+### Permission Issues
+```bash
+sudo chown -R $USER:$USER .
+chmod -R 755 backend/storage
+chmod -R 755 backend/bootstrap/cache
+```
+
+### Container Issues
+```bash
+make clean      # Clean everything
+make build      # Rebuild images
+make install    # Fresh installation
