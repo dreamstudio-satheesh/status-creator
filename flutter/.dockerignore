@@ -1,0 +1,87 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.staging
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Test coverage
+coverage/
+test/
+
+# Node modules (if any)
+node_modules/
+
+# Build artifacts that shouldn't be in containers
+android/app/debug/
+android/app/profile/
+android/app/release/
+ios/Flutter/.last_build_id
+
+# Generated files
+**/*.g.dart
+**/*.freezed.dart
+**/*.config.dart
+lib/generated/
+
+# Firebase sensitive files
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+
+# Keystore files
+*.keystore
+*.jks
+key.properties
+
+# Storage
+storage/
+
+# Cache
+.pub-cache/
+.npm/
+
+# Analysis options during build
+analysis_options.yaml
