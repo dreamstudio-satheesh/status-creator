@@ -60,6 +60,50 @@ return [
             'report' => false,
         ],
 
+        // DigitalOcean Spaces (compatible with S3)
+        'spaces' => [
+            'driver' => 's3',
+            'key' => env('DO_ACCESS_KEY_ID'),
+            'secret' => env('DO_SECRET_ACCESS_KEY'),
+            'region' => env('DO_DEFAULT_REGION', 'nyc3'),
+            'bucket' => env('DO_BUCKET'),
+            'url' => env('DO_URL'),
+            'endpoint' => env('DO_ENDPOINT'),
+            'use_path_style_endpoint' => false,
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // MinIO for development
+        'minio' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY_ID', 'minio'),
+            'secret' => env('MINIO_SECRET_ACCESS_KEY', 'minio123'),
+            'region' => env('MINIO_DEFAULT_REGION', 'us-east-1'),
+            'bucket' => env('MINIO_BUCKET', 'tamil-status'),
+            'url' => env('MINIO_URL'),
+            'endpoint' => env('MINIO_ENDPOINT', 'http://localhost:9000'),
+            'use_path_style_endpoint' => true,
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // Backup storage (for redundancy)
+        'backup' => [
+            'driver' => 's3',
+            'key' => env('BACKUP_ACCESS_KEY_ID'),
+            'secret' => env('BACKUP_SECRET_ACCESS_KEY'),
+            'region' => env('BACKUP_DEFAULT_REGION'),
+            'bucket' => env('BACKUP_BUCKET'),
+            'url' => env('BACKUP_URL'),
+            'endpoint' => env('BACKUP_ENDPOINT'),
+            'use_path_style_endpoint' => env('BACKUP_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

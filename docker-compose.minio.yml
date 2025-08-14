@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: tamil-status-minio
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+      MINIO_DEFAULT_BUCKETS: tamil-status,tamil-status-backup
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # MinIO API
+      - "9001:9001"   # MinIO Console
+    volumes:
+      - minio_data:/data
+    networks:
+      - tamil-status-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio-mc:
+    image: minio/mc:latest
+    container_name: tamil-status-minio-mc
+    depends_on:
+      - minio
+    environment:
+      MC_HOST_minio: http://minio:minio123@minio:9000
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set minio http://minio:9000 minio minio123;
+      /usr/bin/mc mb minio/tamil-status --ignore-existing;
+      /usr/bin/mc mb minio/tamil-status-backup --ignore-existing;
+      /usr/bin/mc policy set public minio/tamil-status;
+      /usr/bin/mc policy set public minio/tamil-status-backup;
+      echo 'MinIO setup completed';
+      exit 0;
+      "
+    networks:
+      - tamil-status-network
+
+volumes:
+  minio_data:
+    driver: local
+
+networks:
+  tamil-status-network:
+    driver: bridge
