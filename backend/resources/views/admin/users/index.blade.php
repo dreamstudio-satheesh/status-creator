@@ -97,50 +97,40 @@
     </div>
 
     <!-- Filters -->
-    <div class="premium-card mb-6">
-        <form method="GET" action="{{ route('admin.users.index') }}" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                    <label for="search" class="label-premium">Search</label>
-                    <input type="text" name="search" id="search" value="{{ request('search') }}"
+    <div class="premium-card p-4">
+        <div class="flex items-center gap-2">
+            <form method="GET" action="{{ route('admin.users.index') }}" class="flex items-center gap-2">
+                <div class="w-80">
+                    <input type="text" name="search" value="{{ request('search') }}"
                            placeholder="Name, email or phone"
-                           class="input-premium">
+                           class="input-premium w-full">
                 </div>
-                
-                <div>
-                    <label for="status" class="label-premium">Status</label>
-                    <select name="status" id="status" class="input-premium">
-                        <option value="">All Status</option>
-                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                        <option value="premium" {{ request('status') == 'premium' ? 'selected' : '' }}>Premium</option>
-                        <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>Verified</option>
-                        <option value="unverified" {{ request('status') == 'unverified' ? 'selected' : '' }}>Unverified</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label for="date_from" class="label-premium">From Date</label>
-                    <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}"
-                           class="input-premium">
-                </div>
-                
-                <div>
-                    <label for="date_to" class="label-premium">To Date</label>
-                    <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}"
-                           class="input-premium">
-                </div>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <a href="{{ route('admin.users.index') }}" class="btn-secondary-premium">
-                    Clear Filters
-                </a>
+                <select name="status" class="input-premium w-32">
+                    <option value="">All Status</option>
+                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    <option value="premium" {{ request('status') == 'premium' ? 'selected' : '' }}>Premium</option>
+                    <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>Verified</option>
+                    <option value="unverified" {{ request('status') == 'unverified' ? 'selected' : '' }}>Unverified</option>
+                </select>
+                <input type="date" name="date_from" value="{{ request('date_from') }}"
+                       class="input-premium w-32">
+                <input type="date" name="date_to" value="{{ request('date_to') }}"
+                       class="input-premium w-32">
                 <button type="submit" class="btn-primary-premium">
-                    Apply Filters
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    Search
                 </button>
-            </div>
-        </form>
+                <a href="{{ route('admin.users.index') }}" class="btn-secondary-premium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Clear
+                </a>
+            </form>
+        </div>
     </div>
 
     <!-- Users Table -->

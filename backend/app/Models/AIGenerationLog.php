@@ -9,6 +9,8 @@ class AIGenerationLog extends Model
 {
     use HasFactory;
 
+    protected $table = 'ai_generation_logs';
+
     protected $fillable = [
         'user_id',
         'template_id',
