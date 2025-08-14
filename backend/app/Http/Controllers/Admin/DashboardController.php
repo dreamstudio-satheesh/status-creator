@@ -114,9 +114,8 @@ class DashboardController extends Controller
         return view('admin.dashboard', compact('stats', 'chartData', 'recentActivity'));
     }
 
-    private function getUserGrowthData()
+    private function getUserGrowthData($days = 30)
     {
-        $days = 30;
         $data = [];
         
         for ($i = $days - 1; $i >= 0; $i--) {
@@ -131,9 +130,8 @@ class DashboardController extends Controller
         return $data;
     }
 
-    private function getStatusGenerationData()
+    private function getStatusGenerationData($days = 7)
     {
-        $days = 7;
         $data = [];
         
         for ($i = $days - 1; $i >= 0; $i--) {
@@ -251,6 +249,135 @@ class DashboardController extends Controller
         ];
 
         return response()->json($health);
+    }
+
+    public function analytics()
+    {
+        // Get comprehensive analytics data
+        $stats = Cache::remember('admin_analytics_stats', 600, function () {
+            return [
+                'users' => [
+                    'total' => User::count(),
+                    'active' => User::whereNotNull('email_verified_at')->count(),
+                    'premium' => User::where('subscription_type', 'premium')
+                        ->where('subscription_expires_at', '>', now())
+                        ->count(),
+                    'this_month' => User::whereBetween('created_at', [
+                        Carbon::now()->startOfMonth(),
+                        Carbon::now()->endOfMonth()
+                    ])->count(),
+                    'growth_rate' => $this->calculateUserGrowthRate(),
+                ],
+                'content' => [
+                    'themes' => Theme::where('is_active', true)->count(),
+                    'templates' => Template::where('is_active', true)->count(),
+                    'status_generated' => UserCreation::count(),
+                    'status_today' => UserCreation::whereDate('created_at', today())->count(),
+                ],
+                'engagement' => [
+                    'total_feedback' => UserFeedback::count(),
+                    'positive_feedback' => UserFeedback::where('rating', '>=', 4)->count(),
+                    'avg_rating' => UserFeedback::avg('rating') ?? 0,
+                    'recent_feedback' => UserFeedback::where('created_at', '>=', Carbon::now()->subDays(7))->count(),
+                ],
+                'revenue' => [
+                    'total_subscriptions' => User::where('subscription_type', 'premium')->count(),
+                    'monthly_recurring' => User::where('subscription_type', 'premium')
+                        ->where('subscription_expires_at', '>', now())
+                        ->count() * 9.99, // Assuming monthly pricing
+                    'conversion_rate' => $this->calculateConversionRate(),
+                ],
+                'performance' => [
+                    'avg_load_time' => $this->getAverageLoadTime(),
+                    'uptime' => $this->getSystemUptime(),
+                    'error_rate' => $this->getErrorRate(),
+                ]
+            ];
+        });
+
+        $chartData = Cache::remember('admin_analytics_charts', 600, function () {
+            return [
+                'user_growth' => $this->getUserGrowthData(12), // 12 months
+                'status_generation' => $this->getStatusGenerationData(30), // 30 days
+                'revenue_trend' => $this->getRevenueData(),
+                'theme_popularity' => $this->getTopThemesData(),
+                'user_activity' => $this->getUserActivityData(),
+                'conversion_funnel' => $this->getConversionFunnelData(),
+            ];
+        });
+
+        return view('admin.analytics', compact('stats', 'chartData'));
+    }
+
+    private function calculateUserGrowthRate()
+    {
+        $thisMonth = User::whereBetween('created_at', [
+            Carbon::now()->startOfMonth(),
+            Carbon::now()->endOfMonth()
+        ])->count();
+
+        $lastMonth = User::whereBetween('created_at', [
+            Carbon::now()->subMonth()->startOfMonth(),
+            Carbon::now()->subMonth()->endOfMonth()
+        ])->count();
+
+        return $lastMonth > 0 ? round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1) : 0;
+    }
+
+    private function calculateConversionRate()
+    {
+        $totalUsers = User::count();
+        $premiumUsers = User::where('subscription_type', 'premium')->count();
+        
+        return $totalUsers > 0 ? round(($premiumUsers / $totalUsers) * 100, 2) : 0;
+    }
+
+    private function getAverageLoadTime()
+    {
+        // This would typically come from application performance monitoring
+        return rand(200, 800); // Placeholder - replace with real APM data
+    }
+
+    private function getSystemUptime()
+    {
+        // This would typically come from system monitoring
+        return 99.9; // Placeholder
+    }
+
+    private function getErrorRate()
+    {
+        // This would typically come from error tracking
+        return 0.1; // Placeholder
+    }
+
+    private function getUserActivityData()
+    {
+        $days = 30;
+        $data = [];
+        
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $activeUsers = UserCreation::whereDate('created_at', $date)
+                ->distinct('user_id')
+                ->count();
+            
+            $data[] = [
+                'date' => $date->format('M d'),
+                'active_users' => $activeUsers
+            ];
+        }
+        
+        return $data;
+    }
+
+    private function getConversionFunnelData()
+    {
+        return [
+            ['stage' => 'Visitors', 'count' => 10000, 'conversion' => 100],
+            ['stage' => 'Signups', 'count' => 1500, 'conversion' => 15],
+            ['stage' => 'Active Users', 'count' => 800, 'conversion' => 53.3],
+            ['stage' => 'Premium Users', 'count' => 120, 'conversion' => 15],
+        ];
     }
 
     private function checkDatabase()

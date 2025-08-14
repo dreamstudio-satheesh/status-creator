@@ -78,10 +78,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
         
         // Analytics
-        Route::get('analytics', function () { return view('admin.analytics'); })->name('analytics');
+        Route::get('analytics', [\App\Http\Controllers\Admin\DashboardController::class, 'analytics'])->name('analytics');
         
         // Feedback Management
-        Route::get('feedback', function () { return view('admin.feedback.index'); })->name('feedback.index');
+        Route::resource('feedback', \App\Http\Controllers\Admin\FeedbackController::class)->except(['create', 'store', 'edit']);
+        Route::post('feedback/bulk-action', [\App\Http\Controllers\Admin\FeedbackController::class, 'bulkAction'])->name('feedback.bulk-action');
+        Route::get('feedback/export', [\App\Http\Controllers\Admin\FeedbackController::class, 'export'])->name('feedback.export');
+        Route::get('feedback/analytics', [\App\Http\Controllers\Admin\FeedbackController::class, 'analytics'])->name('feedback.analytics');
         
         // Admin Management (Super Admin only)
         Route::middleware('can:manage_admins')->group(function () {

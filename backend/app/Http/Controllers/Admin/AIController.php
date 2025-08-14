@@ -49,8 +49,8 @@ class AIController extends Controller
             ->orderBy('date')
             ->get();
 
-        $modelStats = AIGenerationLog::selectRaw('model, COUNT(*) as count, SUM(cost) as total_cost, AVG(response_time_ms) as avg_time')
-            ->groupBy('model')
+        $modelStats = AIGenerationLog::selectRaw('model_used, COUNT(*) as count, SUM(cost) as total_cost, AVG(response_time_ms) as avg_time')
+            ->groupBy('model_used')
             ->orderByDesc('count')
             ->get();
 
@@ -131,14 +131,14 @@ class AIController extends Controller
 
         $modelUsage = AIGenerationLog::where('created_at', '>=', $startDate)
             ->selectRaw('
-                model,
+                model_used,
                 service_type,
                 COUNT(*) as total_requests,
                 SUM(cost) as total_cost,
                 AVG(response_time_ms) as avg_response_time,
                 SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as successful_requests
             ')
-            ->groupBy('model', 'service_type')
+            ->groupBy('model_used', 'service_type')
             ->orderByDesc('total_requests')
             ->get();
 
@@ -163,11 +163,11 @@ class AIController extends Controller
             ->selectRaw('
                 DATE(created_at) as date,
                 service_type,
-                model,
+                model_used,
                 SUM(cost) as total_cost,
                 COUNT(*) as request_count
             ')
-            ->groupBy('date', 'service_type', 'model')
+            ->groupBy('date', 'service_type', 'model_used')
             ->orderBy('date')
             ->get();
 
@@ -234,8 +234,9 @@ class AIController extends Controller
                 // Log the generation
                 AIGenerationLog::create([
                     'user_id' => auth('admin')->id(),
-                    'service_type' => 'huggingface',
-                    'model' => 'blip-image-captioning-base',
+                    'provider' => 'huggingface',
+                    'service_type' => 'image_captioning',
+                    'model_used' => 'blip-image-captioning-base',
                     'prompt' => "Image caption for: " . $image->getClientOriginalName(),
                     'response' => $caption,
                     'cost' => 0.01,

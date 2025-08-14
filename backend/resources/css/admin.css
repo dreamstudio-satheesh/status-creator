@@ -179,9 +179,14 @@
     }
     
     .dropdown-item-premium {
-        @apply block px-4 py-3 text-sm text-slate-700 font-medium
+        @apply flex items-center px-4 py-3 text-sm text-slate-700 font-medium
                hover:bg-slate-50/80 hover:text-primary-700 
-               transition-colors duration-200 first:rounded-t-xl last:rounded-b-xl;
+               transition-colors duration-200 first:rounded-t-xl last:rounded-b-xl
+               w-full cursor-pointer;
+    }
+    
+    .dropdown-item-premium svg {
+        @apply flex-shrink-0 mr-3 h-4 w-4;
     }
 }
 

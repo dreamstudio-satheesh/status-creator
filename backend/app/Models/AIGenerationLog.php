@@ -17,8 +17,12 @@ class AIGenerationLog extends Model
         'prompt',
         'response',
         'model_used',
+        'provider',
+        'service_type',
         'tokens_used',
         'cost',
+        'response_time_ms',
+        'metadata',
         'status',
         'error_message',
     ];
@@ -27,6 +31,8 @@ class AIGenerationLog extends Model
     {
         return [
             'cost' => 'decimal:6',
+            'response_time_ms' => 'integer',
+            'metadata' => 'array',
         ];
     }
 
