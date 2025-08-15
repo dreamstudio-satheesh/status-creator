@@ -60,6 +60,18 @@ flutter build apk         # Build debug APK
 flutter build apk --release  # Build release APK
 flutter build appbundle   # Build for Play Store
 flutter build ios         # Build for iOS (macOS only)
+flutter install           # Install APK on connected device
+```
+
+**Quick Start for WSL:**
+```bash
+# Connect to Android device wirelessly
+adb connect 192.168.x.x:port
+
+# Run with hot reload
+cd flutter
+export PATH="$PATH:/home/satheesh/flutter/bin"
+flutter run
 ```
 
 ### Database Operations
@@ -187,3 +199,24 @@ flutter doctor
 # For WSL users, add to PATH:
 export PATH="$PATH:/home/satheesh/flutter/bin"
 ```
+
+### Wireless ADB Connection (WSL/Linux)
+WSL doesn't support USB passthrough, so use wireless debugging:
+
+```bash
+# First time - pair device:
+adb pair 192.168.x.x:pairing_port pairing_code
+
+# Connect to device:
+adb connect 192.168.x.x:connection_port
+
+# Verify:
+adb devices
+flutter devices
+
+# Run Flutter app:
+cd flutter
+flutter run
+```
+
+**Note**: Connection port changes when wireless debugging is toggled. If connection drops, get new port from phone settings and reconnect.

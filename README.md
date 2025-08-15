@@ -78,6 +78,45 @@ The system minimizes LLM API costs using **prebuilt templates**, **bulk AI gener
    API_BASE_URL=http://YOUR_COMPUTER_IP:8000/api/v1
    ```
 
+### 📱 Wireless ADB Setup for WSL/Linux
+
+Since WSL doesn't support USB passthrough, use wireless debugging:
+
+1. **Enable Wireless Debugging on Android:**
+   - Go to Settings → Developer Options
+   - Enable "Wireless debugging"
+   - Tap "Wireless debugging" to enter settings
+
+2. **Pair Your Device (First Time Only):**
+   ```bash
+   # On phone: Tap "Pair device with pairing code"
+   # Note the IP, port, and pairing code
+   adb pair 192.168.x.x:port pairing_code
+   
+   # Example:
+   adb pair 192.168.1.2:36815 317981
+   ```
+
+3. **Connect to Device:**
+   ```bash
+   # Use the IP and port shown under "IP address & Port"
+   adb connect 192.168.x.x:port
+   
+   # Example:
+   adb connect 192.168.1.2:42481
+   ```
+
+4. **Verify Connection:**
+   ```bash
+   adb devices
+   flutter devices  # Should show your device
+   ```
+
+5. **If Connection Drops:**
+   - Toggle Wireless debugging OFF and ON
+   - Note the new port (it changes)
+   - Reconnect: `adb connect 192.168.x.x:new_port`
+
 ---
 
 ## Tech Stack
