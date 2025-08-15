@@ -43,7 +43,7 @@ dependencies:
   
   # Image Handling
   image_picker: ^1.0.7
-  image_cropper: ^5.0.1
+  # image_cropper: ^5.0.1  # Commented out due to web platform issues
   flutter_image_compress: ^2.1.0
   photo_view: ^0.14.0
   
@@ -97,17 +97,17 @@ flutter:
     - assets/fonts/
     - .env
   
-  fonts:
-    - family: Tamil
-      fonts:
-        - asset: assets/fonts/Latha.ttf
-        - asset: assets/fonts/Latha-Bold.ttf
-          weight: 700
-    - family: Catamaran
-      fonts:
-        - asset: assets/fonts/Catamaran-Regular.ttf
-        - asset: assets/fonts/Catamaran-Bold.ttf
-          weight: 700
+  # fonts:
+  #   - family: Tamil
+  #     fonts:
+  #       - asset: assets/fonts/Latha.ttf
+  #       - asset: assets/fonts/Latha-Bold.ttf
+  #         weight: 700
+  #   - family: Catamaran
+  #     fonts:
+  #       - asset: assets/fonts/Catamaran-Regular.ttf
+  #       - asset: assets/fonts/Catamaran-Bold.ttf
+  #         weight: 700
 
 flutter_launcher_icons:
   android: "launcher_icon"

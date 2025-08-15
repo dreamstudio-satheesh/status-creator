@@ -9,18 +9,19 @@ AI Tamil Status Creator - A Flutter + Laravel application for creating and shari
 ## Architecture
 
 ### Core Components
-- **Frontend**: Flutter mobile/web app in `flutter/` directory
-- **Backend**: Laravel 11 API in `backend/` directory  
-- **Database**: MySQL 8.0 with utf8mb4 for Tamil text support
-- **Cache/Queue**: Redis for session, cache, and queue management
-- **Storage**: MinIO (dev) or S3/Spaces (prod) for images
+- **Frontend**: Flutter mobile app (runs locally) in `flutter/` directory
+- **Backend**: Laravel 11 API in `backend/` directory (Dockerized)
+- **Database**: MySQL 8.0 with utf8mb4 for Tamil text support (Dockerized)
+- **Cache/Queue**: Redis for session, cache, and queue management (Dockerized)
+- **Storage**: MinIO (dev) or S3/Spaces (prod) for images (Dockerized)
 - **AI Integration**: OpenRouter LLM + BLIP/CLIP/OFA for image captioning
 
 ### Service Communication
-- Flutter app communicates with Laravel API via REST endpoints
+- Flutter app runs locally and communicates with Laravel API via REST endpoints
 - Laravel uses Redis for queue jobs and caching
-- All services run in Docker containers connected via `status_network`
-- Nginx reverse proxy routes requests between services
+- Backend services run in Docker containers connected via `status_network`
+- Nginx reverse proxy routes requests for backend services
+- Flutter connects to backend at `http://localhost:8000` (or `10.0.2.2:8000` for Android emulator)
 
 ## Essential Commands
 
@@ -49,13 +50,16 @@ make queue-restart        # Restart queue workers
 docker-compose exec backend php artisan [command]  # Run any artisan command
 ```
 
-### Flutter Development
+### Flutter Development (Local)
 ```bash
-make shell-flutter         # Access Flutter container
-make flutter-clean        # Clean Flutter project
-make flutter-build-web    # Build for web
-make flutter-build-apk    # Build APK
-flutter run -d web-server --web-port=8080 --web-hostname=0.0.0.0  # Run with hot reload
+cd flutter
+flutter pub get           # Install dependencies
+flutter clean             # Clean project
+flutter run               # Run on connected device/emulator
+flutter build apk         # Build debug APK
+flutter build apk --release  # Build release APK
+flutter build appbundle   # Build for Play Store
+flutter build ios         # Build for iOS (macOS only)
 ```
 
 ### Database Operations
@@ -66,11 +70,11 @@ make restore-db file=backup.sql  # Restore from backup
 ```
 
 ## Service URLs
-- Flutter App: http://localhost:8080
 - Backend API: http://localhost:8000
 - phpMyAdmin: http://localhost:8081
 - Mailhog: http://localhost:8025
 - MinIO Console: http://localhost:9001
+- Flutter App: Run locally via `flutter run`
 
 ## Environment Configuration
 
@@ -78,6 +82,9 @@ make restore-db file=backup.sql  # Restore from backup
 1. `.env` - Docker service configuration
 2. `backend/.env` - Laravel configuration (copy from `backend/.env.example`)
 3. `flutter/.env` - Flutter configuration (copy from `flutter/.env.example`)
+   - Set `API_BASE_URL=http://localhost:8000/api/v1` for local development
+   - Use `http://10.0.2.2:8000/api/v1` for Android emulator
+   - Use your computer's IP for physical devices
 
 ### Key Configuration Values
 - **Database**: `DB_HOST=mysql`, `DB_DATABASE=status_creator`
@@ -124,10 +131,10 @@ All tables support Tamil text via utf8mb4 charset.
 
 ### Core Services
 - `backend` - Laravel API with PHP 8.2, Nginx, Supervisor
-- `flutter` - Flutter development server with hot reload
 - `mysql` - Database with Tamil support
 - `redis` - Cache and queue backend
 - `nginx` - Reverse proxy for routing
+- **Flutter** - Runs locally on developer machine (not in Docker)
 
 ### Support Services
 - `phpmyadmin` - Database management UI
@@ -171,8 +178,12 @@ make build      # Rebuild images
 make install    # Fresh installation
 ```
 
-### Flutter SDK in WSL
-Flutter is installed at `/home/satheesh/flutter/bin`. To use in new terminals:
+### Flutter SDK Setup
+Flutter runs locally on your development machine. Ensure Flutter SDK is installed:
 ```bash
+# Check Flutter installation
+flutter doctor
+
+# For WSL users, add to PATH:
 export PATH="$PATH:/home/satheesh/flutter/bin"
 ```

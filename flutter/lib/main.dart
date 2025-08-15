@@ -90,8 +90,7 @@ class TamilStatusCreatorApp extends ConsumerWidget {
       ),
       
       // Bottom Navigation Bar Theme
-      bottomNavigationBarTheme: const BottomNavigationBarTheme(
-        elevation: 8,
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Color(0xFF6750A4),
         unselectedItemColor: Colors.grey,
@@ -99,7 +98,7 @@ class TamilStatusCreatorApp extends ConsumerWidget {
       ),
       
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -166,8 +165,7 @@ class TamilStatusCreatorApp extends ConsumerWidget {
       ),
       
       // Bottom Navigation Bar Theme
-      bottomNavigationBarTheme: const BottomNavigationBarTheme(
-        elevation: 8,
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Color(0xFF6750A4),
         unselectedItemColor: Colors.grey,
@@ -176,7 +174,7 @@ class TamilStatusCreatorApp extends ConsumerWidget {
       ),
       
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -207,7 +205,7 @@ class TamilStatusCreatorApp extends ConsumerWidget {
       ),
       
       // Floating Action Button Theme
-      floatingActionButtonThemeData: const FloatingActionButtonThemeData(
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
         elevation: 6,
         shape: CircleBorder(),
       ),

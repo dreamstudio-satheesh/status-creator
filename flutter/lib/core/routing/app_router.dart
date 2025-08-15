@@ -12,9 +12,11 @@ import '../../features/editor/screens/editor_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/settings_screen.dart';
 import '../../features/subscription/screens/subscription_screen.dart';
+import '../../features/profile/screens/user_creations_screen.dart';
 import '../../shared/screens/splash_screen.dart';
 import '../../shared/screens/onboarding_screen.dart';
 import '../../shared/screens/error_screen.dart';
+import '../../shared/widgets/main_shell.dart';
 import '../constants/app_constants.dart';
 import '../storage/secure_storage.dart';
 
@@ -169,15 +171,15 @@ class AppRouter {
 
   // Navigation helper methods
   static void pushNamed(String name, {Map<String, String>? pathParameters, Object? extra}) {
-    router.pushNamed(name, pathParameters: pathParameters, extra: extra);
+    router.pushNamed(name, pathParameters: pathParameters ?? {}, extra: extra);
   }
 
   static void goNamed(String name, {Map<String, String>? pathParameters, Object? extra}) {
-    router.goNamed(name, pathParameters: pathParameters, extra: extra);
+    router.goNamed(name, pathParameters: pathParameters ?? {}, extra: extra);
   }
 
   static void pushReplacementNamed(String name, {Map<String, String>? pathParameters, Object? extra}) {
-    router.pushReplacementNamed(name, pathParameters: pathParameters, extra: extra);
+    router.pushReplacementNamed(name, pathParameters: pathParameters ?? {}, extra: extra);
   }
 
   static void pop<T>([T? result]) {

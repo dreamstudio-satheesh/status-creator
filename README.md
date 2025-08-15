@@ -39,6 +39,47 @@ The system minimizes LLM API costs using **prebuilt templates**, **bulk AI gener
 
 ---
 
+## 📱 Flutter Local Setup
+
+### Prerequisites for Mobile Development
+1. **Flutter SDK**: Version 3.x or later
+   - Download from https://flutter.dev/docs/get-started/install
+   - Add Flutter to PATH: `export PATH="$PATH:/path/to/flutter/bin"`
+
+2. **Android Development**
+   - Android Studio with Android SDK
+   - Android emulator or physical device with USB debugging
+   - Accept Android licenses: `flutter doctor --android-licenses`
+
+3. **iOS Development (macOS only)**
+   - Xcode from App Store
+   - CocoaPods: `sudo gem install cocoapods`
+   - iOS simulator or physical device
+
+4. **Verify Installation**
+   ```bash
+   flutter doctor  # Check all requirements
+   ```
+
+### Connecting Flutter to Docker Backend
+1. Update `flutter/.env` file:
+   ```env
+   API_BASE_URL=http://localhost:8000/api/v1
+   LARAVEL_BASE_URL=http://localhost:8000
+   ```
+
+2. For Android emulator, use:
+   ```env
+   API_BASE_URL=http://10.0.2.2:8000/api/v1  # Android emulator localhost
+   ```
+
+3. For physical device on same network:
+   ```env
+   API_BASE_URL=http://YOUR_COMPUTER_IP:8000/api/v1
+   ```
+
+---
+
 ## Tech Stack
 
 - **Frontend:** Flutter 3.x
@@ -52,11 +93,13 @@ The system minimizes LLM API costs using **prebuilt templates**, **bulk AI gener
 
 ---
 
-## 🐳 Docker Installation (Recommended)
+## 🐳 Docker Installation (Backend Services)
 
 ### Prerequisites
 - Docker Engine 20.10+
 - Docker Compose 2.0+
+- Flutter SDK 3.x (for mobile app development)
+- Android Studio / Xcode (for mobile development)
 - 4GB RAM minimum
 - 10GB free disk space
 
@@ -87,12 +130,25 @@ The system minimizes LLM API costs using **prebuilt templates**, **bulk AI gener
    make seed     # Optional: Load sample data
    ```
 
-5. **Access the application**
-   - Flutter App: http://localhost:8080
+5. **Access the services**
    - Backend API: http://localhost:8000
    - phpMyAdmin: http://localhost:8081
    - Mailhog: http://localhost:8025
    - MinIO Console: http://localhost:9001
+
+6. **Setup Flutter locally for mobile development**
+   ```bash
+   cd flutter
+   flutter pub get
+   
+   # For Android development
+   flutter run  # Run on connected device/emulator
+   flutter build apk  # Build APK
+   
+   # For iOS development (macOS only)
+   flutter run  # Run on iOS simulator
+   flutter build ios  # Build for iOS
+   ```
 
 ---
 
@@ -100,10 +156,10 @@ The system minimizes LLM API costs using **prebuilt templates**, **bulk AI gener
 
 ### Core Services
 - **backend**: Laravel 11 API (PHP 8.2, Nginx, Supervisor)
-- **flutter**: Flutter development server with hot reload
 - **mysql**: MySQL 8.0 with Tamil (utf8mb4) support
 - **redis**: Redis cache and queue backend
 - **nginx**: Reverse proxy for routing
+- **Flutter**: Run locally on your machine for Android/iOS development
 
 ### Development Tools
 - **phpmyadmin**: Database management UI
@@ -137,12 +193,24 @@ make test-backend   # Run tests
 make npm-build      # Build admin panel assets
 ```
 
-### Flutter Commands
+### Flutter Commands (Run locally)
 ```bash
-make shell-flutter      # Access flutter shell
-make flutter-clean      # Clean flutter project
-make flutter-build-web  # Build for web
-make flutter-build-apk  # Build APK
+cd flutter
+
+# Development
+flutter pub get           # Install dependencies
+flutter run               # Run on connected device/emulator
+flutter clean             # Clean project
+
+# Building
+flutter build apk         # Build debug APK
+flutter build apk --release  # Build release APK
+flutter build appbundle   # Build for Play Store
+flutter build ios         # Build for iOS (macOS only)
+
+# Connect to Docker backend
+# Update flutter/.env with:
+# API_BASE_URL=http://localhost:8000/api/v1
 ```
 
 ### Database Commands
@@ -174,15 +242,17 @@ Edit `.env` files in root, `backend/`, and `flutter/` directories:
 ## 📁 Project Structure
 ```
 statusapp/
-├── backend/              # Laravel 11 API
+├── backend/              # Laravel 11 API (Dockerized)
 │   ├── app/             # Application code
 │   ├── database/        # Migrations & seeds
 │   ├── routes/          # API routes
 │   ├── storage/         # File storage
 │   └── docker/          # Docker configs
-├── flutter/             # Flutter mobile app
+├── flutter/             # Flutter mobile app (Run locally)
 │   ├── lib/            # Dart source code
 │   ├── assets/         # Images, fonts
+│   ├── android/        # Android project files
+│   ├── ios/            # iOS project files
 │   └── pubspec.yaml    # Dependencies
 ├── mysql/              # Database setup
 │   ├── init.sql       # Initial schema

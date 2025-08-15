@@ -24,14 +24,8 @@ logs: ## View logs for all services
 logs-backend: ## View backend logs
 	docker-compose logs -f backend
 
-logs-flutter: ## View flutter logs
-	docker-compose logs -f flutter
-
 shell-backend: ## Access backend container shell
 	docker-compose exec backend bash
-
-shell-flutter: ## Access flutter container shell
-	docker-compose exec flutter bash
 
 shell-mysql: ## Access MySQL shell
 	docker-compose exec mysql mysql -u root -proot_secret status_creator
@@ -48,7 +42,7 @@ install: ## Initial setup - build and install dependencies
 	docker-compose exec backend cp .env.example .env
 	docker-compose exec backend php artisan key:generate
 	docker-compose exec backend php artisan storage:link
-	docker-compose exec flutter flutter pub get
+	@echo "Flutter setup: Please run 'cd flutter && flutter pub get' locally"
 
 migrate: ## Run Laravel migrations
 	docker-compose exec backend php artisan migrate
@@ -80,14 +74,16 @@ npm-dev: ## Run npm dev for backend
 npm-build: ## Build production assets for backend
 	docker-compose exec backend npm run build
 
-flutter-clean: ## Clean Flutter project
-	docker-compose exec flutter flutter clean
-
-flutter-build-web: ## Build Flutter web
-	docker-compose exec flutter flutter build web
-
-flutter-build-apk: ## Build Flutter APK
-	docker-compose exec flutter flutter build apk
+# Flutter commands - Run these locally in the flutter directory
+flutter-help: ## Flutter local development commands
+	@echo "Flutter commands (run locally in flutter/ directory):"
+	@echo "  flutter pub get              - Install dependencies"
+	@echo "  flutter clean                - Clean project"
+	@echo "  flutter run                  - Run on connected device/emulator"
+	@echo "  flutter build apk            - Build APK (debug)"
+	@echo "  flutter build apk --release  - Build APK (release)"
+	@echo "  flutter build appbundle      - Build for Play Store"
+	@echo "  flutter install              - Install on connected device"
 
 status: ## Show status of all services
 	docker-compose ps

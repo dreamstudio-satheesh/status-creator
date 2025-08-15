@@ -1,6 +1,6 @@
-# CLAUDE.md - Flutter App
+# CLAUDE.md - Flutter App (Local Development)
 
-This file provides guidance to Claude Code when working with the Flutter application code in this directory.
+This file provides guidance to Claude Code when working with the Flutter application code. Flutter runs locally on the developer's machine, not in Docker, to enable Android and iOS app development.
 
 ## Project Overview
 
@@ -39,9 +39,13 @@ lib/
 
 ### Networking & API
 - **Dio**: HTTP client for API communication
-- **API Base URL**: `http://localhost:8000/api/v1` (development)
 - **Laravel Backend Integration**: Full REST API integration
 - **Auto Token Refresh**: Automatic JWT token management
+- **API Base URLs**:
+  - Local development: `http://localhost:8000/api/v1`
+  - Android emulator: `http://10.0.2.2:8000/api/v1`
+  - Physical device: `http://YOUR_COMPUTER_IP:8000/api/v1`
+  - iOS simulator: `http://localhost:8000/api/v1`
 
 ### Storage & Security
 - **Flutter Secure Storage**: For sensitive data (tokens, user info)
@@ -67,25 +71,47 @@ lib/
 
 ## Essential Commands
 
-### Development
+### Local Development Setup
 ```bash
+# Navigate to Flutter directory
+cd flutter
+
 # Install dependencies
 flutter pub get
 
-# Run app (debug mode)
+# Check Flutter setup
+flutter doctor
+
+# List available devices
+flutter devices
+```
+
+### Running the App
+```bash
+# Run on connected device/emulator
 flutter run
 
 # Run on specific device
 flutter run -d <device_id>
 
-# Hot reload during development
-# Press 'r' in terminal or save files
+# Run with verbose output
+flutter run -v
 
-# Build for testing
-flutter build apk --debug
+# Hot reload: Press 'r' in terminal
+# Hot restart: Press 'R' in terminal
+```
 
-# Build for release
-flutter build apk --release
+### Building
+```bash
+# Android builds
+flutter build apk --debug      # Debug APK
+flutter build apk --release    # Release APK
+flutter build appbundle        # Play Store bundle
+
+# iOS builds (macOS only)
+flutter build ios --debug      # Debug build
+flutter build ios --release    # Release build
+flutter build ipa              # App Store archive
 ```
 
 ### Code Generation
@@ -121,8 +147,12 @@ flutter build apk --dart-define-from-file=.env
 ## Configuration
 
 ### Environment Variables (.env)
-- `API_BASE_URL`: Backend API URL
-- `LARAVEL_BASE_URL`: Laravel backend URL  
+- `API_BASE_URL`: Backend API URL (varies by platform)
+  - Local web: `http://localhost:8000/api/v1`
+  - Android emulator: `http://10.0.2.2:8000/api/v1`
+  - Physical device: `http://YOUR_COMPUTER_IP:8000/api/v1`
+  - iOS simulator: `http://localhost:8000/api/v1`
+- `LARAVEL_BASE_URL`: Laravel backend URL (same pattern as API_BASE_URL)
 - `DEBUG_MODE`: Enable/disable debug features
 - `ENABLE_ANALYTICS`: Firebase analytics toggle
 - `RAZORPAY_KEY_ID`: Payment gateway key (optional)
@@ -226,16 +256,56 @@ Splash → Onboarding → Login/Register → Home
 ## Troubleshooting
 
 ### Common Issues
+
+#### Connection Issues
+- **Cannot connect to backend**: 
+  - Ensure Docker services are running: `make status`
+  - Check correct API_BASE_URL for your platform
+  - For Android emulator, use `10.0.2.2` instead of `localhost`
+  - For physical device, ensure on same network and use computer's IP
+
+#### Build Issues
 - **Dependency Conflicts**: Run `flutter pub deps` to check
-- **Build Errors**: Clean project with `flutter clean`
-- **API Issues**: Check backend connectivity and CORS
-- **Authentication**: Verify token format and expiration
+- **Build Errors**: Clean with `flutter clean && flutter pub get`
+- **Android build fails**: Check `flutter doctor -v` for Android setup
+- **iOS build fails**: Run `cd ios && pod install`
+
+#### API Issues
+- **CORS errors**: Backend should allow Flutter app origin
+- **Authentication fails**: Check token format and expiration
+- **Network timeout**: Verify backend is accessible from device
 
 ### Development Setup
-- **Flutter SDK**: Version 3.29.2 or later
-- **Android Studio**: For Android development and emulators
-- **VS Code**: Recommended editor with Flutter extension
-- **Device/Emulator**: For testing and debugging
+
+#### Prerequisites
+1. **Flutter SDK**: Version 3.x or later
+   - Download: https://flutter.dev/docs/get-started/install
+   - Add to PATH: `export PATH="$PATH:/path/to/flutter/bin"`
+
+2. **Android Development**
+   - Android Studio with Android SDK
+   - Android Virtual Device (AVD) or physical device
+   - Accept licenses: `flutter doctor --android-licenses`
+   - Enable Developer Mode and USB Debugging on physical devices
+
+3. **iOS Development (macOS only)**
+   - Xcode from App Store
+   - CocoaPods: `sudo gem install cocoapods`
+   - iOS Simulator or physical device
+   - Apple Developer account for device testing
+
+4. **IDE Setup**
+   - VS Code with Flutter/Dart extensions (recommended)
+   - Android Studio with Flutter plugin
+   - IntelliJ IDEA with Flutter plugin
+
+#### Backend Services
+Ensure Docker backend services are running:
+```bash
+cd ..
+make up        # Start backend services
+make migrate   # Run database migrations
+```
 
 ### Performance Issues  
 - **Memory Leaks**: Use Flutter Inspector to debug
