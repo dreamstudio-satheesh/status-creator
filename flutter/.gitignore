@@ -172,5 +172,5 @@ node_modules/
 # dotenv environment variables file
 .env
 
-# Local storage
-storage/
+# Local storage (but not lib/core/storage)
+/storage/
