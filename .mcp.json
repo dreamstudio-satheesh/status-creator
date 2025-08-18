@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "/home/satheesh/mcp-servers/playwright/venv/bin/python",
+      "args": ["/home/satheesh/mcp-servers/playwright/playwright_mcp.py"]
+    }
+  }
+}

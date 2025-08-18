@@ -107,6 +107,7 @@ make restore-db file=backup.sql  # Restore from backup
 ### Default Credentials
 - Admin Panel: admin@example.com / admin123
 - MySQL Root: root / root_secret
+- MySQL User: status_user / secret_password
 - MinIO: minioadmin / minioadmin
 
 ## Database Schema
@@ -118,6 +119,10 @@ The application uses MySQL with the following core tables:
 - `user_creations` - User-generated status images
 - `subscriptions` - Premium subscription tracking
 - `ai_generation_logs` - AI usage tracking for cost management
+- `settings` - Application configuration settings
+- `fonts` - Font management for status creation
+- `admins` - Admin panel user accounts
+- `activity_logs` - Admin activity tracking
 
 All tables support Tamil text via utf8mb4 charset.
 
@@ -165,8 +170,22 @@ make test-backend
 docker-compose exec backend php artisan test --filter=TestClassName
 
 # Flutter tests
-docker-compose exec flutter flutter test
+cd flutter && flutter test
 ```
+
+## API Documentation
+
+API documentation is available at:
+- Interactive Swagger UI: http://localhost:8000/api/documentation
+- Postman Collection: `backend/docs/postman_collection.json`
+- Markdown Documentation: `backend/docs/API_DOCUMENTATION.md`
+
+Key API endpoints:
+- Authentication: `/api/v1/auth/*`
+- User Management: `/api/v1/user/*`
+- Themes & Templates: `/api/v1/public/themes/*`, `/api/v1/public/templates/*`
+- AI Generation: `/api/v1/ai/*`
+- File Upload: `/api/v1/uploads/*`
 
 ## Troubleshooting
 
@@ -220,3 +239,34 @@ flutter run
 ```
 
 **Note**: Connection port changes when wireless debugging is toggled. If connection drops, get new port from phone settings and reconnect.
+
+## Development Guidelines
+
+### Code Organization
+- **Backend**: Laravel follows standard MVC pattern with additional Services and Jobs
+- **Frontend**: Flutter uses feature-based folder structure with Provider for state management
+- **Shared Logic**: Common constants and utilities in each project's respective directories
+
+### Security Considerations
+- All sensitive data should be stored in environment variables
+- API uses Laravel Sanctum for authentication with Bearer tokens
+- Rate limiting implemented for all endpoints
+- Input validation on both frontend and backend
+- HTTPS should be used in production
+
+### Performance Optimization
+- Use caching for frequently accessed data (Redis)
+- Implement proper database indexing
+- Use queue workers for time-consuming operations
+- Optimize image assets and use appropriate formats
+
+## Deployment
+
+For production deployment:
+1. Set `APP_ENV=production` in `backend/.env`
+2. Configure proper SSL certificates
+3. Use production database (not Docker MySQL)
+4. Set up proper S3/Spaces for file storage
+5. Configure proper email service (not Mailhog)
+6. Set up monitoring and logging
+7. Implement proper backup strategies

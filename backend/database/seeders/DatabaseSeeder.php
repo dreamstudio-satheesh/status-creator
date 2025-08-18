@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             ThemeSeeder::class,
             FontSeeder::class,
             SettingSeeder::class,
-            AdminUserSeeder::class,
+            AdminSeeder::class,
         ]);
     }
 }
