@@ -185,6 +185,7 @@ class AuthController extends Controller
         if (!$user) {
             $user = User::create([
                 'name' => 'User',
+                'email' => $mobile . '@mobile.app', // Generate email from mobile for unique constraint
                 'mobile' => $mobile,
                 'subscription_type' => 'free',
                 'daily_ai_quota' => 10,
