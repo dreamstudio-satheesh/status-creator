@@ -1,17 +1,14 @@
-# AI Tamil Status Creator App
+# AI Tamil Status Creator
 
-A cost-efficient Flutter + Laravel application for creating and sharing Tamil status images for WhatsApp, Instagram, and other social platforms.  
-The system minimizes LLM API costs using **prebuilt templates**, **bulk AI generation by admin**, and a **small image captioning model**.
+A cost-efficient Flutter + Laravel application for creating and sharing Tamil status images for WhatsApp, Instagram, and other social platforms. The system minimizes LLM API costs using **prebuilt templates**, **bulk AI generation by admin**, and a **small image captioning model**.
 
 ---
 
-
-
-## Features
+## 🌟 Features
 
 - **Authentication**
   - Mobile OTP login via MSG91
-  - Google Sign-In
+  - Google Sign-In  
   - Laravel Sanctum token authentication
 
 - **Templates & Themes**
@@ -41,316 +38,339 @@ The system minimizes LLM API costs using **prebuilt templates**, **bulk AI gener
 
 ---
 
-## 📱 Flutter Local Setup
-
-### Prerequisites for Mobile Development
-1. **Flutter SDK**: Version 3.x or later
-   - Download from https://flutter.dev/docs/get-started/install
-   - Add Flutter to PATH: `export PATH="$PATH:/path/to/flutter/bin"`
-
-2. **Android Development**
-   - Android Studio with Android SDK
-   - Android emulator or physical device with USB debugging
-   - Accept Android licenses: `flutter doctor --android-licenses`
-
-3. **iOS Development (macOS only)**
-   - Xcode from App Store
-   - CocoaPods: `sudo gem install cocoapods`
-   - iOS simulator or physical device
-
-4. **Verify Installation**
-   ```bash
-   flutter doctor  # Check all requirements
-   ```
-
-### Connecting Flutter to Docker Backend
-1. Update `flutter/.env` file:
-   ```env
-   API_BASE_URL=http://localhost:8000/api/v1
-   LARAVEL_BASE_URL=http://localhost:8000
-   ```
-
-2. For Android emulator, use:
-   ```env
-   API_BASE_URL=http://10.0.2.2:8000/api/v1  # Android emulator localhost
-   ```
-
-3. For physical device on same network:
-   ```env
-   API_BASE_URL=http://YOUR_COMPUTER_IP:8000/api/v1
-   ```
-
-### 📱 Wireless ADB Setup for WSL/Linux
-
-Since WSL doesn't support USB passthrough, use wireless debugging:
-
-1. **Enable Wireless Debugging on Android:**
-   - Go to Settings → Developer Options
-   - Enable "Wireless debugging"
-   - Tap "Wireless debugging" to enter settings
-
-2. **Pair Your Device (First Time Only):**
-   ```bash
-   # On phone: Tap "Pair device with pairing code"
-   # Note the IP, port, and pairing code
-   adb pair 192.168.x.x:port pairing_code
-   
-   # Example:
-   adb pair 192.168.1.2:36815 317981
-   ```
-
-3. **Connect to Device:**
-   ```bash
-   # Use the IP and port shown under "IP address & Port"
-   adb connect 192.168.x.x:port
-   
-   # Example:
-   adb connect 192.168.1.2:42481
-   ```
-
-4. **Verify Connection:**
-   ```bash
-   adb devices
-   flutter devices  # Should show your device
-   ```
-
-5. **If Connection Drops:**
-   - Toggle Wireless debugging OFF and ON
-   - Note the new port (it changes)
-   - Reconnect: `adb connect 192.168.x.x:new_port`
-
----
-
-## Tech Stack
-
-- **Frontend:** Flutter 3.x
-- **Backend:** Laravel 11 (API-first)
-- **Database:** MySQL
-- **Authentication:** Laravel Sanctum, MSG91 OTP, Google OAuth
-- **AI:** BLIP/CLIP/OFA for captions, OpenRouter LLM for quotes
-- **File Storage:** AWS S3 / DigitalOcean Spaces
-- **Payments:** Razorpay / Stripe
-- **Notifications:** Firebase Cloud Messaging
-
----
-
-## 🐳 Docker Installation (Backend Services)
+## 🚀 Quick Start
 
 ### Prerequisites
-- Docker Engine 20.10+
-- Docker Compose 2.0+
-- Flutter SDK 3.x (for mobile app development)
-- Android Studio / Xcode (for mobile development)
-- 4GB RAM minimum
-- 10GB free disk space
+- **PHP 8.2+** with required extensions
+- **Composer** for PHP dependencies
+- **Flutter SDK 3.x+** for mobile development
+- **SQLite** (included with PHP) or **MySQL** for production
+- **Node.js & NPM** for admin panel assets
 
-### Quick Start
+### 1. Clone Repository
+```bash
+git clone https://github.com/dreamstudio-satheesh/status-creator.git
+cd status-creator
+```
 
-1. **Clone repository**
-   ```bash
-   git clone git@github.com:dreamstudio-satheesh/status-creator.git
-   cd status-creator
-   ```
+### 2. Backend Setup (Laravel)
+```bash
+cd backend
 
-2. **Copy environment files**
-   ```bash
-   cp .env.example .env
-   cp backend/.env.example backend/.env
-   cp flutter/.env.example flutter/.env
-   ```
+# Install PHP dependencies
+composer install
 
-3. **Start all services**
-   ```bash
-   make install  # First time setup
-   make up       # Start services
-   ```
+# Copy environment file
+cp .env.example .env
 
-4. **Run migrations**
-   ```bash
-   make migrate
-   make seed     # Optional: Load sample data
-   ```
+# Generate application key
+php artisan key:generate
 
-5. **Access the services**
-   - Backend API: http://localhost:8000
-   - phpMyAdmin: http://localhost:8081
-   - Mailhog: http://localhost:8025
-   - MinIO Console: http://localhost:9001
+# Run migrations and seed data
+php artisan migrate --seed
 
-6. **Setup Flutter locally for mobile development**
-   ```bash
-   cd flutter
-   flutter pub get
-   
-   # For Android development
-   flutter run  # Run on connected device/emulator
-   flutter build apk  # Build APK
-   
-   # For iOS development (macOS only)
-   flutter run  # Run on iOS simulator
-   flutter build ios  # Build for iOS
-   ```
+# Build admin panel assets
+npm install && npm run build
+
+# Start Laravel server
+php artisan serve
+```
+
+### 3. Mobile App Setup (Flutter)
+```bash
+cd ../mobileapp
+
+# Install Flutter dependencies
+flutter pub get
+
+# Copy environment file
+cp .env.example .env
+
+# Check Flutter setup
+flutter doctor
+
+# Run on connected device/emulator
+flutter run
+```
+
+### 4. Access the Application
+- **Backend API**: http://localhost:8000/api/v1
+- **Admin Panel**: http://localhost:8000/admin
+- **API Documentation**: http://localhost:8000/api/documentation
+- **Mobile App**: Run via `flutter run`
 
 ---
 
-## 🛠️ Docker Services
+## 📱 Mobile Development Setup
 
-### Core Services
-- **backend**: Laravel 11 API (PHP 8.2, Nginx, Supervisor)
-- **mysql**: MySQL 8.0 with Tamil (utf8mb4) support
-- **redis**: Redis cache and queue backend
-- **nginx**: Reverse proxy for routing
-- **Flutter**: Run locally on your machine for Android/iOS development
+### Android Development
+1. **Install Android Studio** with Android SDK
+2. **Setup Android emulator** or connect physical device
+3. **Enable Developer Options & USB Debugging** on physical device
+4. **Accept Android licenses**: `flutter doctor --android-licenses`
 
-### Development Tools
-- **phpmyadmin**: Database management UI
-- **mailhog**: Email testing interface
-- **minio**: S3-compatible local storage
-- **queue-worker**: Laravel queue processor
-- **scheduler**: Laravel task scheduler
+### iOS Development (macOS only)  
+1. **Install Xcode** from App Store
+2. **Install CocoaPods**: `sudo gem install cocoapods`
+3. **Setup iOS simulator** or connect physical device
+
+### Wireless ADB for WSL/Linux Users
+Since WSL doesn't support USB passthrough:
+
+```bash
+# Enable Wireless Debugging on Android device
+# Settings → Developer Options → Wireless debugging
+
+# Pair device (first time only)
+adb pair 192.168.x.x:port pairing_code
+
+# Connect to device  
+adb connect 192.168.x.x:port
+
+# Verify connection
+adb devices
+flutter devices
+```
 
 ---
 
-## 📝 Useful Commands
+## 🛠️ Architecture
 
-### Docker Management
-```bash
-make up          # Start all services
-make down        # Stop all services
-make restart     # Restart all services
-make logs        # View all logs
-make status      # Check service status
-make clean       # Remove containers and volumes
+### Tech Stack
+- **Frontend**: Flutter 3.x (Dart)
+- **Backend**: Laravel 11 (PHP 8.2+)
+- **Database**: SQLite (development) / MySQL (production)  
+- **Cache**: File-based cache / Database cache
+- **Storage**: Local filesystem
+- **Authentication**: Laravel Sanctum, MSG91 OTP, Google OAuth
+- **AI**: OpenRouter LLM, Hugging Face image captioning
+- **Payments**: Razorpay / Stripe integration
+
+### Project Structure
+```
+status-creator/
+├── backend/                 # Laravel 11 API
+│   ├── app/                # Application code
+│   ├── database/           # Migrations, seeders, SQLite
+│   ├── routes/             # API routes
+│   ├── resources/          # Admin panel views & assets
+│   └── storage/            # File storage
+├── mobileapp/              # Flutter mobile app  
+│   ├── lib/               # Dart source code
+│   ├── assets/            # Images, fonts, animations
+│   ├── android/           # Android project files
+│   └── ios/               # iOS project files
+└── README.md              # This documentation
 ```
 
-### Backend Commands
+---
+
+## 📝 Development Commands
+
+### Backend (Laravel)
 ```bash
-make shell-backend    # Access backend shell
-make migrate         # Run migrations
-make seed           # Seed database
-make fresh          # Fresh migration with seeding
-make cache-clear    # Clear all caches
-make test-backend   # Run tests
-make npm-build      # Build admin panel assets
+cd backend
+
+# Development server
+php artisan serve --port=8000
+
+# Database operations
+php artisan migrate              # Run migrations
+php artisan migrate:fresh --seed # Fresh database with sample data
+php artisan db:seed --class=ThemeSeeder  # Seed specific data
+
+# Queue operations (separate terminal)
+php artisan queue:work           # Process background jobs
+
+# Cache management
+php artisan cache:clear          # Clear application cache
+php artisan config:clear         # Clear config cache
+php artisan route:clear          # Clear route cache
+
+# Testing
+php artisan test                 # Run tests
+php artisan tinker               # Laravel REPL
 ```
 
-### Flutter Commands (Run locally)
+### Frontend (Flutter)
 ```bash
-cd flutter
+cd mobileapp
 
 # Development
-flutter pub get           # Install dependencies
-flutter run               # Run on connected device/emulator
-flutter clean             # Clean project
+flutter pub get                  # Install dependencies
+flutter run                      # Run on connected device/emulator
+flutter clean                    # Clean project
 
 # Building
-flutter build apk         # Build debug APK
-flutter build apk --release  # Build release APK
-flutter build appbundle   # Build for Play Store
-flutter build ios         # Build for iOS (macOS only)
+flutter build apk                # Build debug APK
+flutter build apk --release      # Build release APK
+flutter build appbundle          # Build for Play Store
+flutter build ios               # Build for iOS (macOS only)
 
-# Connect to Docker backend
-# Update flutter/.env with:
-# API_BASE_URL=http://localhost:8000/api/v1
-```
+# Code generation
+flutter packages pub run build_runner build    # Generate code
+flutter packages pub run build_runner watch   # Watch and generate
 
-### Database Commands
-```bash
-make shell-mysql  # Access MySQL shell
-make backup-db    # Backup database
-make restore-db file=backup.sql  # Restore database
+# Testing
+flutter test                     # Run all tests
+flutter test --coverage         # Test with coverage
 ```
 
 ---
 
 ## 🔧 Configuration
 
-### Environment Variables
-Edit `.env` files in root, `backend/`, and `flutter/` directories:
+### Environment Files
+1. **`backend/.env`** - Laravel configuration
+   ```env
+   APP_NAME="Tamil Status Creator"
+   APP_ENV=production
+   APP_URL=https://status.dreamcoderz.com
+   
+   # Database (SQLite for development)
+   DB_CONNECTION=sqlite
+   
+   # Cache & Sessions
+   CACHE_STORE=file
+   SESSION_DRIVER=database
+   QUEUE_CONNECTION=database
+   
+   # SMS Service (MSG91)
+   MSG91_API_KEY=your_msg91_api_key
+   
+   # AI Services
+   OPENROUTER_API_KEY=your_openrouter_api_key
+   HUGGINGFACE_API_KEY=your_huggingface_api_key
+   ```
 
-- **Root `.env`**: Docker service configurations
-- **`backend/.env`**: Laravel application settings
-- **`flutter/.env`**: Flutter app configuration
+2. **`mobileapp/.env`** - Flutter configuration
+   ```env
+   # Production Backend
+   API_BASE_URL=https://status.dreamcoderz.com/api/v1
+   
+   # Local Development  
+   # API_BASE_URL=http://localhost:8000/api/v1          # Local web
+   # API_BASE_URL=http://10.0.2.2:8000/api/v1          # Android emulator
+   # API_BASE_URL=http://YOUR_COMPUTER_IP:8000/api/v1   # Physical device
+   
+   # App Configuration
+   APP_NAME=Tamil Status Creator
+   DEBUG_MODE=true
+   ENABLE_ANALYTICS=false
+   ```
 
 ### Default Credentials
 - **Admin Panel**: admin@example.com / admin123
-- **MySQL Root**: root / root_secret
-- **MySQL User**: status_user / secret_password
-- **MinIO**: minioadmin / minioadmin
+- **Test Mobile**: 6379108040
+- **MSG91 API**: 464494A5TVsNXX0r68a5173cP1
 
 ---
 
-## 📁 Project Structure
-```
-statusapp/
-├── backend/              # Laravel 11 API (Dockerized)
-│   ├── app/             # Application code
-│   ├── database/        # Migrations & seeds
-│   ├── routes/          # API routes
-│   ├── storage/         # File storage
-│   └── docker/          # Docker configs
-├── flutter/             # Flutter mobile app (Run locally)
-│   ├── lib/            # Dart source code
-│   ├── assets/         # Images, fonts
-│   ├── android/        # Android project files
-│   ├── ios/            # iOS project files
-│   └── pubspec.yaml    # Dependencies
-├── mysql/              # Database setup
-│   ├── init.sql       # Initial schema
-│   └── my.cnf         # MySQL config
-├── nginx/              # Reverse proxy
-│   └── nginx.conf     # Nginx config
-├── docker-compose.yml  # Service orchestration
-├── Makefile           # Helper commands
-└── README.md          # Documentation
-```
+## 🔒 Production Deployment
+
+### cPanel Hosting
+The application is production-ready for cPanel hosting:
+
+1. **Upload Files**: Upload `backend/` contents to public_html
+2. **Database**: Create MySQL database and update `.env`
+3. **Composer**: Run `composer install --no-dev --optimize-autoloader`
+4. **Environment**: Set `APP_ENV=production` and `APP_DEBUG=false`
+5. **Permissions**: Set storage and cache folders to 755
+6. **Assets**: Run `npm run build` for admin panel assets
+
+### Flutter App Deployment
+- **Android**: Build APK/AAB and upload to Play Store
+- **iOS**: Build IPA and upload to App Store
+- **Configuration**: Update `.env` with production API URLs
 
 ---
 
-## 🚀 Production Deployment
+## 🌐 API Documentation
 
-For production deployment, configure your environment variables for production use and deploy using your preferred container orchestration platform.
+### Key Endpoints
+- **Authentication**: `/api/v1/auth/*`
+- **Themes**: `/api/v1/public/themes`
+- **Templates**: `/api/v1/public/templates`
+- **User Management**: `/api/v1/user/*`
+- **AI Generation**: `/api/v1/ai/*`
 
----
-
-## 🔒 Security Notes
-
-1. Change all default passwords before production
-2. Use SSL certificates for HTTPS
-3. Configure firewall rules
-4. Enable Laravel production optimizations
-5. Set proper CORS headers
-6. Implement rate limiting
-
----
-
-## 📚 API Documentation
-
-After starting the services, API documentation is available at:
-- Swagger UI: http://localhost:8000/api/documentation
-- Postman Collection: `backend/docs/postman_collection.json`
+### Documentation Access
+- **Interactive Swagger UI**: 
+  - Production: https://status.dreamcoderz.com/api/documentation
+  - Local: http://localhost:8000/api/documentation
+- **Postman Collection**: `backend/docs/postman_collection.json`
+- **Markdown Docs**: `backend/docs/API_DOCUMENTATION.md`
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Port Conflicts
-If ports are already in use, modify the `.env` file:
-```env
-BACKEND_PORT=8001
-FLUTTER_PORT=8081
-MYSQL_PORT=3307
+### Backend Issues
+```bash
+# Permission issues
+chmod -R 755 backend/storage backend/bootstrap/cache
+
+# Clear all caches
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+
+# Reinstall dependencies
+composer install
+
+# Database issues
+php artisan migrate:fresh --seed
 ```
 
-### Permission Issues
+### Flutter Issues
 ```bash
-sudo chown -R $USER:$USER .
-chmod -R 755 backend/storage
-chmod -R 755 backend/bootstrap/cache
+# Clean and reinstall
+flutter clean
+flutter pub get
+
+# Check setup
+flutter doctor -v
+
+# Device connection
+flutter devices
+adb devices
 ```
 
-### Container Issues
-```bash
-make clean      # Clean everything
-make build      # Rebuild images
-make install    # Fresh installation
+### Connection Issues
+- **Cannot connect to backend**: Check if Laravel server is running
+- **Android emulator**: Use `10.0.2.2:8000` instead of `localhost:8000`  
+- **Physical device**: Ensure same network, use computer's IP address
+- **CORS errors**: Backend allows Flutter app origins
+
+---
+
+## 📚 Additional Resources
+
+- **Flutter Documentation**: https://flutter.dev/docs
+- **Laravel Documentation**: https://laravel.com/docs
+- **API Testing**: Use Postman collection in `backend/docs/`
+- **Admin Panel**: Access at `/admin` with default credentials
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -m 'Add new feature'`
+4. Push to branch: `git push origin feature/new-feature`
+5. Submit pull request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 📞 Support
+
+- **Production URL**: https://status.dreamcoderz.com
+- **Documentation**: See CLAUDE.md files in each directory
+- **Issues**: Create GitHub issues for bug reports and feature requests
