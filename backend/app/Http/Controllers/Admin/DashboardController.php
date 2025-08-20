@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 class DashboardController extends Controller
 {
@@ -204,8 +205,29 @@ class DashboardController extends Controller
     private function getCacheSize()
     {
         try {
-            $redis = app('redis');
-            return $redis->dbsize();
+            // Check if Redis is configured and available
+            if (config('cache.default') === 'redis') {
+                return Redis::connection()->dbsize();
+            } else {
+                // For file-based cache, estimate cache size from files
+                $cacheDir = storage_path('framework/cache/data');
+                if (!is_dir($cacheDir)) {
+                    return 0;
+                }
+                
+                $size = 0;
+                $files = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($cacheDir)
+                );
+                
+                foreach ($files as $file) {
+                    if ($file->isFile()) {
+                        $size += $file->getSize();
+                    }
+                }
+                
+                return $size;
+            }
         } catch (\Exception $e) {
             return 0;
         }
@@ -393,11 +415,25 @@ class DashboardController extends Controller
     private function checkRedis()
     {
         try {
-            $redis = app('redis');
-            $redis->ping();
-            return ['status' => 'healthy', 'message' => 'Redis connection successful'];
+            // Check if Redis is configured for this environment
+            if (config('cache.default') === 'redis' || config('session.driver') === 'redis' || config('queue.default') === 'redis') {
+                Redis::connection()->ping();
+                return ['status' => 'healthy', 'message' => 'Redis connection successful'];
+            } else {
+                // For cPanel deployment, check if file cache directory is writable
+                $cacheDir = storage_path('framework/cache');
+                if (!is_dir($cacheDir)) {
+                    return ['status' => 'error', 'message' => 'Cache directory does not exist'];
+                }
+                
+                if (!is_writable($cacheDir)) {
+                    return ['status' => 'error', 'message' => 'Cache directory is not writable'];
+                }
+                
+                return ['status' => 'healthy', 'message' => 'File cache system operational'];
+            }
         } catch (\Exception $e) {
-            return ['status' => 'error', 'message' => 'Redis connection failed: ' . $e->getMessage()];
+            return ['status' => 'error', 'message' => 'Cache system check failed: ' . $e->getMessage()];
         }
     }
 
