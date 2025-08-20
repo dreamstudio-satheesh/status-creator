@@ -9,26 +9,18 @@ AI Tamil Status Creator - A Flutter + Laravel application for creating and shari
 ## Architecture
 
 ### Core Components
-- **Frontend**: Flutter mobile app (runs locally) in `flutter/` directory
-- **Backend**: Laravel 11 API in `backend/` directory (Dockerized)
-- **Database**: MySQL 8.0 with utf8mb4 for Tamil text support (Dockerized)
-- **Cache/Queue**: Redis for session, cache, and queue management (Dockerized)
-- **Storage**: MinIO (dev) or S3/Spaces (prod) for images (Dockerized)
+- **Frontend**: Flutter mobile app (runs locally) in `mobileapp/` directory
+- **Backend**: Laravel 11 API in `backend/` directory (Production-ready with SQLite)
+- **Database**: SQLite for development, MySQL for production with utf8mb4 for Tamil text support
+- **Cache/Queue**: File-based cache and database queues (no Redis dependency)
+- **Storage**: Local file storage for images
 - **AI Integration**: OpenRouter LLM + BLIP/CLIP/OFA for image captioning
 
 ### Service Communication
 - Flutter app runs locally and communicates with Laravel API via REST endpoints
-- Laravel uses Redis for queue jobs and caching (Docker) or file-based cache (cPanel)
-- Backend services run in Docker containers connected via `status_network` (local) or cPanel hosting (production)
-- Nginx reverse proxy routes requests for backend services
-- **Development Server**: Flutter connects to `https://status.dreamcoderz.com` (production backend)
-- **Local Testing**: Flutter can connect to `http://localhost:8000` (Docker) or `http://10.0.2.2:8000` (Android emulator)
-
-### Environment Configuration
-- **Production Backend**: https://status.dreamcoderz.com
-- **Local Docker**: http://localhost:8000
-- **Android Emulator**: http://10.0.2.2:8000
-- **Physical Device**: http://YOUR_COMPUTER_IP:8000
+- Laravel uses file-based cache and database queues for simplicity
+- **Production Server**: https://status.dreamcoderz.com (cPanel hosting)
+- **Local Development**: Laravel can run via `php artisan serve` on http://localhost:8000
 
 ### Claude Development Configuration
 This project is configured for development with Claude Code (claude.ai/code) using the production server at `https://status.dreamcoderz.com`. 
@@ -49,32 +41,33 @@ This project is configured for development with Claude Code (claude.ai/code) usi
 
 ### Development Workflow
 ```bash
-# First time setup
-make install     # Builds images, installs dependencies, generates keys
-make migrate     # Run database migrations
-make seed        # Load sample data
+# Backend setup (first time)
+cd backend
+composer install          # Install PHP dependencies
+php artisan key:generate   # Generate application key
+php artisan migrate --seed # Setup database with sample data
 
-# Daily development
-make up          # Start all services
-make down        # Stop all services
-make logs        # View all logs
-make status      # Check service status
+# Daily backend development
+cd backend
+php artisan serve         # Start Laravel development server
+php artisan queue:work    # Start queue processing (separate terminal)
+php artisan cache:clear   # Clear caches when needed
 ```
 
 ### Backend Development
 ```bash
-make shell-backend         # Access Laravel container
-make migrate              # Run migrations
-make fresh                # Fresh migration with seeding
-make cache-clear          # Clear all Laravel caches
-make test-backend         # Run tests
-make queue-restart        # Restart queue workers
-docker-compose exec backend php artisan [command]  # Run any artisan command
+cd backend
+php artisan migrate       # Run database migrations
+php artisan migrate:fresh --seed  # Fresh migration with seeding
+php artisan cache:clear   # Clear all Laravel caches
+php artisan test          # Run tests
+php artisan tinker        # Laravel REPL
+php artisan queue:work    # Start queue workers
 ```
 
 ### Flutter Development (Local)
 ```bash
-cd flutter
+cd mobileapp
 flutter pub get           # Install dependencies
 flutter clean             # Clean project
 flutter run               # Run on connected device/emulator
@@ -91,50 +84,47 @@ flutter install           # Install APK on connected device
 adb connect 192.168.x.x:port
 
 # Run with hot reload
-cd flutter
+cd mobileapp
 export PATH="$PATH:/home/satheesh/flutter/bin"
 flutter run
 ```
 
 ### Database Operations
 ```bash
-make shell-mysql          # Access MySQL CLI
-make backup-db           # Create database backup
-make restore-db file=backup.sql  # Restore from backup
+cd backend
+sqlite3 database/database.sqlite  # Access SQLite CLI
+php artisan db:seed --class=ThemeSeeder  # Seed specific data
 ```
 
 ## Service URLs
-- Backend API: http://localhost:8000
-- phpMyAdmin: http://localhost:8081
-- Mailhog: http://localhost:8025
-- MinIO Console: http://localhost:9001
+- Production Backend API: https://status.dreamcoderz.com/api/v1
+- Production Admin Panel: https://status.dreamcoderz.com/admin
+- Local Backend API: http://localhost:8000 (when running `php artisan serve`)
 - Flutter App: Run locally via `flutter run`
 
 ## Environment Configuration
 
 ### Required Environment Files
-1. `.env` - Docker service configuration
-2. `backend/.env` - Laravel configuration (copy from `backend/.env.example`)
-3. `flutter/.env` - Flutter configuration (copy from `flutter/.env.example`)
-   - Set `API_BASE_URL=http://localhost:8000/api/v1` for local development
+1. `backend/.env` - Laravel configuration (copy from `backend/.env.example` for production settings)
+2. `mobileapp/.env` - Flutter configuration (copy from `mobileapp/.env.example`)
+   - Set `API_BASE_URL=https://status.dreamcoderz.com/api/v1` for production backend
+   - Use `http://localhost:8000/api/v1` for local development
    - Use `http://10.0.2.2:8000/api/v1` for Android emulator
-   - Use your computer's IP for physical devices
 
 ### Key Configuration Values
-- **Database**: `DB_HOST=mysql`, `DB_DATABASE=status_creator`
-- **Redis**: `REDIS_HOST=redis`
-- **Storage**: `AWS_ENDPOINT=http://minio:9000` (development)
-- **Mail**: `MAIL_HOST=mailhog` (development)
+- **Database**: SQLite (development) - `DB_CONNECTION=sqlite`
+- **Cache**: File-based - `CACHE_STORE=file` or `CACHE_STORE=database`
+- **Queue**: Database - `QUEUE_CONNECTION=database`
+- **Storage**: Local filesystem - `FILESYSTEM_DISK=local`
 
 ### Default Credentials
 - Admin Panel: admin@example.com / admin123
-- MySQL Root: root / root_secret
-- MySQL User: status_user / secret_password
-- MinIO: minioadmin / minioadmin
+- MSG91 API Key: 464494A5TVsNXX0r68a5173cP1
+- Test Mobile: 6379108040
 
 ## Database Schema
 
-The application uses MySQL with the following core tables:
+The application uses SQLite (development) or MySQL (production) with the following core tables:
 - `users` - User accounts with subscription management
 - `themes` - Template categories (Love, Motivation, etc.)
 - `templates` - Pre-generated status templates
@@ -166,39 +156,39 @@ All tables support Tamil text via utf8mb4 charset.
 3. Premium users have daily quotas for custom generation
 4. Small captioning models minimize token usage
 
-## Docker Services
+## Application Architecture
 
 ### Core Services
-- `backend` - Laravel API with PHP 8.2, Nginx, Supervisor
-- `mysql` - Database with Tamil support
-- `redis` - Cache and queue backend
-- `nginx` - Reverse proxy for routing
-- **Flutter** - Runs locally on developer machine (not in Docker)
+- **Backend** - Laravel 11 API with PHP 8.2+ (runs locally with `php artisan serve`)
+- **Database** - SQLite (development) or MySQL (production) with Tamil support
+- **Cache** - File-based or database cache (no Redis dependency)
+- **Queue** - Database-based job queues
+- **Flutter** - Runs locally on developer machine
 
-### Support Services
-- `phpmyadmin` - Database management UI
-- `mailhog` - Email testing interface
-- `minio` - S3-compatible local storage
-- `queue-worker` - Laravel queue processor
-- `scheduler` - Laravel cron scheduler
+### Development Tools
+- **Queue Worker** - `php artisan queue:work` for background jobs
+- **Scheduler** - `php artisan schedule:work` for cron tasks
+- **Storage** - Local file storage for images and assets
 
 ## Testing
 
 ```bash
 # Backend tests
-make test-backend
+cd backend
+php artisan test
 
 # Run specific test
-docker-compose exec backend php artisan test --filter=TestClassName
+php artisan test --filter=TestClassName
 
 # Flutter tests
-cd flutter && flutter test
+cd mobileapp && flutter test
 ```
 
 ## API Documentation
 
 API documentation is available at:
-- Interactive Swagger UI: http://localhost:8000/api/documentation
+- Interactive Swagger UI: https://status.dreamcoderz.com/api/documentation (production)
+- Interactive Swagger UI: http://localhost:8000/api/documentation (local)
 - Postman Collection: `backend/docs/postman_collection.json`
 - Markdown Documentation: `backend/docs/API_DOCUMENTATION.md`
 
@@ -212,11 +202,10 @@ Key API endpoints:
 ## Troubleshooting
 
 ### Port Conflicts
-Modify `.env` file if ports are in use:
-```env
-BACKEND_PORT=8001
-FLUTTER_PORT=8081
-MYSQL_PORT=3307
+If port 8000 is in use, start Laravel on different port:
+```bash
+cd backend
+php artisan serve --port=8001
 ```
 
 ### Permission Issues
@@ -224,11 +213,13 @@ MYSQL_PORT=3307
 chmod -R 755 backend/storage backend/bootstrap/cache
 ```
 
-### Container Issues
+### Laravel Issues
 ```bash
-make clean      # Remove all containers and volumes
-make build      # Rebuild images
-make install    # Fresh installation
+cd backend
+php artisan cache:clear     # Clear all caches
+php artisan config:clear    # Clear config cache
+php artisan route:clear     # Clear route cache
+composer install           # Reinstall dependencies
 ```
 
 ### Flutter SDK Setup
@@ -256,7 +247,7 @@ adb devices
 flutter devices
 
 # Run Flutter app:
-cd flutter
+cd mobileapp
 flutter run
 ```
 
