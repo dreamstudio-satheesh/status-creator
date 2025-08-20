@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# Git Post-Receive Hook for cPanel Deployment
+# Automatically deploys Tamil Status Creator when pushing to master branch
+
+REPO_DIR="/home/statusdreamcoder/repo.git"
+LIVE_DIR="/home/statusdreamcoder/live"
+BRANCH="master"
+
+echo "🚀 Starting deployment process..."
+
+# Check if the push is for the master branch
+while read oldrev newrev refname; do
+    branch=$(git rev-parse --symbolic --abbrev-ref $refname)
+    if [ "$branch" = "$BRANCH" ]; then
+        echo "📥 Received push to $BRANCH branch"
+        
+        # Deploy new version
+        echo "📂 Checking out files to live directory..."
+        git --git-dir=$REPO_DIR --work-tree=$LIVE_DIR checkout -f $BRANCH
+        
+        # Enter live directory and run deployment
+        cd "$LIVE_DIR"
+        
+        # Check if backend directory exists
+        if [ -d "backend" ]; then
+            cd backend
+            
+            echo "🔧 Running deployment script..."
+            if [ -f "deploy.sh" ]; then
+                chmod +x deploy.sh
+                ./deploy.sh
+            else
+                echo "⚠️  deploy.sh not found, running manual deployment..."
+                
+                # Manual deployment steps
+                echo "📦 Installing production dependencies..."
+                composer install --optimize-autoloader --no-dev --no-interaction
+                
+                echo "🧹 Clearing and caching configurations..."
+                php artisan config:clear
+                php artisan route:clear
+                php artisan view:clear
+                php artisan cache:clear
+                php artisan config:cache
+                php artisan route:cache
+                php artisan view:cache
+                
+                echo "🗄️  Running database migrations..."
+                php artisan migrate --force --no-interaction
+                
+                echo "🔗 Creating storage symbolic link..."
+                php artisan storage:link
+                
+                echo "🔒 Setting proper file permissions..."
+                find . -type f -exec chmod 644 {} \;
+                find . -type d -exec chmod 755 {} \;
+                chmod -R 775 storage bootstrap/cache
+                
+                echo "⚡ Optimizing application..."
+                php artisan optimize:clear
+            fi
+            
+            echo "✅ Deployment completed successfully!"
+            echo "🌐 Your application should now be live at: https://status.dreamcoderz.com"
+        else
+            echo "❌ Backend directory not found!"
+            exit 1
+        fi
+    else
+        echo "ℹ️  Push to $branch branch ignored (only $BRANCH branch triggers deployment)"
+    fi
+done
+
+echo "✅ Deployment completed successfully!"
+echo "🌐 Live at: https://status.dreamcoderz.com"
