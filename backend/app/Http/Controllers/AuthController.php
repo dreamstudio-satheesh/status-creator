@@ -101,11 +101,18 @@ class AuthController extends Controller
         $result = $this->msg91Service->sendOTP($mobile, $otp);
 
         if ($result['success']) {
-            return response()->json([
+            $response = [
                 'success' => true,
                 'message' => 'OTP sent successfully to your mobile number',
                 'expires_in' => 300,
-            ]);
+            ];
+
+            // Include OTP in development mode for testing
+            if (app()->environment(['local', 'testing']) || config('app.debug')) {
+                $response['development_otp'] = $otp;
+            }
+
+            return response()->json($response);
         }
 
         return response()->json([
