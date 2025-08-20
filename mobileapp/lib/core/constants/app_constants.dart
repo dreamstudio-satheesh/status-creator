@@ -5,9 +5,9 @@ class AppConstants {
   static const String appDescription = 'AI-powered Tamil status image creator';
   
   // API Configuration
-  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8000/api/v1');
-  static const String laravelBaseUrl = String.fromEnvironment('LARAVEL_BASE_URL', defaultValue: 'http://localhost:8000');
-  static const String storageBaseUrl = String.fromEnvironment('STORAGE_BASE_URL', defaultValue: 'http://localhost:8000/storage');
+  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://status.dreamcoderz.com/api/v1');
+  static const String laravelBaseUrl = String.fromEnvironment('LARAVEL_BASE_URL', defaultValue: 'https://status.dreamcoderz.com');
+  static const String storageBaseUrl = String.fromEnvironment('STORAGE_BASE_URL', defaultValue: 'https://status.dreamcoderz.com/storage');
   static const int apiTimeout = int.fromEnvironment('API_TIMEOUT', defaultValue: 30000);
   
   // Storage Keys
@@ -43,7 +43,8 @@ class AppConstants {
   
   // Social Sharing
   static const String shareText = 'Check out this Tamil status created with Tamil Status Creator';
-  static const String playStoreUrl = 'https://play.google.com/store/apps/details?id=com.example.tamilstatus';
+  static const String playStoreUrl = 'https://play.google.com/store/apps/details?id=com.tamilstatus.creator';
+  static const String shareUrlBase = 'https://status.dreamcoderz.com/share';
   
   // Feature Flags
   static const bool enableBiometric = bool.fromEnvironment('ENABLE_BIOMETRIC', defaultValue: true);

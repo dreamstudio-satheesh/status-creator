@@ -18,10 +18,32 @@ AI Tamil Status Creator - A Flutter + Laravel application for creating and shari
 
 ### Service Communication
 - Flutter app runs locally and communicates with Laravel API via REST endpoints
-- Laravel uses Redis for queue jobs and caching
-- Backend services run in Docker containers connected via `status_network`
+- Laravel uses Redis for queue jobs and caching (Docker) or file-based cache (cPanel)
+- Backend services run in Docker containers connected via `status_network` (local) or cPanel hosting (production)
 - Nginx reverse proxy routes requests for backend services
-- Flutter connects to backend at `http://localhost:8000` (or `10.0.2.2:8000` for Android emulator)
+- **Development Server**: Flutter connects to `https://status.dreamcoderz.com` (production backend)
+- **Local Testing**: Flutter can connect to `http://localhost:8000` (Docker) or `http://10.0.2.2:8000` (Android emulator)
+
+### Environment Configuration
+- **Production Backend**: https://status.dreamcoderz.com
+- **Local Docker**: http://localhost:8000
+- **Android Emulator**: http://10.0.2.2:8000
+- **Physical Device**: http://YOUR_COMPUTER_IP:8000
+
+### Claude Development Configuration
+This project is configured for development with Claude Code (claude.ai/code) using the production server at `https://status.dreamcoderz.com`. 
+
+**Key Features:**
+- Real-time backend API testing with live server
+- No local Docker setup required for basic development
+- Instant API response testing and debugging
+- Production-like environment for development
+
+**Claude Environment Setup:**
+- Backend API: `https://status.dreamcoderz.com/api/v1`
+- Admin Panel: `https://status.dreamcoderz.com/admin`
+- Health Check: `https://status.dreamcoderz.com/api/v1/health`
+- Flutter app configured to use production backend by default
 
 ## Essential Commands
 
