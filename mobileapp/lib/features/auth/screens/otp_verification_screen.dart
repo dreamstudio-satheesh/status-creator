@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
 import '../services/auth_api_service.dart';
+import '../../../core/storage/secure_storage.dart';
+import '../../../core/constants/app_constants.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -25,6 +27,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   );
   final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
   final AuthApiService _authApiService = AuthApiService();
+  final SecureStorage _secureStorage = SecureStorage();
   
   bool _isLoading = false;
   bool _canResend = false;
@@ -108,7 +111,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       if (!mounted) return;
 
       if (response.isSuccess) {
-        // TODO: Store token and user data in secure storage
+        // Store token and user data in secure storage
+        if (response.token != null) {
+          await _secureStorage.write(AppConstants.accessTokenKey, response.token!);
+        }
+        if (response.user != null) {
+          await _secureStorage.write(AppConstants.userDataKey, response.user!.toJson().toString());
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Welcome, ${response.user?.name ?? 'User'}!'),
