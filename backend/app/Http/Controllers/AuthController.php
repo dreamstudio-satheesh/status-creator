@@ -125,7 +125,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'mobile' => 'required|string|regex:/^[+]?[0-9]{10,15}$/',
-            'otp' => 'required|string|size:6',
+            'otp' => 'required|string|min:4|max:6',
         ]);
 
         if ($validator->fails()) {
@@ -167,7 +167,16 @@ class AuthController extends Controller
 
         RateLimiter::hit($rateLimitKey, 300);
 
-        if ($otpData['otp'] !== $otp) {
+        // Check for development OTP first
+        $isValidOtp = false;
+        if (app()->environment(['local', 'testing']) || config('app.debug')) {
+            if ($otp === '1212') {
+                $isValidOtp = true;
+            }
+        }
+        
+        // If not development OTP, check the actual OTP
+        if (!$isValidOtp && $otpData['otp'] !== $otp) {
             $otpData['attempts']++;
             Cache::put($otpKey, $otpData, 300);
             
@@ -340,6 +349,7 @@ class AuthController extends Controller
             'id_token' => 'required|string',
             'email' => 'required|email',
             'name' => 'required|string',
+            'mobile' => 'sometimes|string|regex:/^[+]?[0-9]{10,15}$/',
             'avatar' => 'sometimes|url',
         ]);
 
@@ -356,22 +366,31 @@ class AuthController extends Controller
             // For now, we'll trust the data from the client
             $email = $request->email;
             $name = $request->name;
+            $mobile = $request->mobile;
             $avatar = $request->avatar;
 
             $user = User::where('email', $email)->first();
 
             if ($user) {
                 // Update user info if changed
-                $user->update([
+                $updateData = [
                     'name' => $name,
                     'avatar' => $avatar,
                     'email_verified_at' => now(),
-                ]);
+                ];
+                
+                // Only update mobile if provided
+                if ($mobile) {
+                    $updateData['mobile'] = $mobile;
+                }
+                
+                $user->update($updateData);
             } else {
                 // Create new user
                 $user = User::create([
                     'name' => $name,
                     'email' => $email,
+                    'mobile' => $mobile,
                     'avatar' => $avatar,
                     'email_verified_at' => now(),
                     'subscription_type' => 'free',

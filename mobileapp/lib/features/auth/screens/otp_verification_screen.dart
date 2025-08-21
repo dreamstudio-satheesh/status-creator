@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
+import '../services/auth_api_service.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -23,6 +24,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
+  final AuthApiService _authApiService = AuthApiService();
   
   bool _isLoading = false;
   bool _canResend = false;
@@ -97,12 +99,31 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement OTP verification
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      // Call backend OTP verification
+      final response = await _authApiService.verifyOtp(
+        widget.phoneNumber, 
+        otpCode,
+      );
       
-      if (mounted) {
+      if (!mounted) return;
+
+      if (response.isSuccess) {
+        // TODO: Store token and user data in secure storage
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Welcome, ${response.user?.name ?? 'User'}!'),
+            backgroundColor: Colors.green,
+          ),
+        );
         // Navigate to home on successful verification
         context.go('/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {

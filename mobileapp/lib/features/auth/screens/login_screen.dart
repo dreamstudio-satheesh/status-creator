@@ -31,16 +31,33 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement OTP sending logic
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      // Call backend to send OTP
+      final mobile = '+91${_phoneController.text.trim()}';
+      final response = await _authApiService.sendOtp(mobile);
       
-      if (mounted) {
+      if (!mounted) return;
+
+      if (response.isSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            backgroundColor: Colors.green,
+          ),
+        );
+        
         context.pushNamed(
           'otp-verification',
           extra: {
-            'phoneNumber': _phoneController.text.trim(),
+            'phoneNumber': mobile,
             'isRegistration': false,
           },
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } catch (e) {
@@ -68,33 +85,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (result.isSuccess) {
-        // Send Firebase user data to backend for authentication
-        final authResponse = await _authApiService.authenticateWithGoogle(
-          idToken: result.idToken!,
-          email: result.firebaseUser!.email!,
-          name: result.firebaseUser!.displayName ?? 'User',
-          avatar: result.firebaseUser!.photoURL,
+        // Navigate to Google registration screen to collect mobile number
+        context.pushNamed(
+          'google-registration',
+          extra: {
+            'googleUser': result.googleUser!,
+            'idToken': result.idToken!,
+          },
         );
-
-        if (!mounted) return;
-
-        if (authResponse.isSuccess) {
-          // TODO: Store token and user data in secure storage
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Welcome, ${authResponse.user?.name ?? 'User'}!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          context.go('/home');
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Backend authentication failed: ${authResponse.message}'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        }
       } else if (result.isCancelled) {
         // User cancelled sign-in, no action needed
       } else {

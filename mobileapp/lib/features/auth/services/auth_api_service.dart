@@ -15,6 +15,7 @@ class AuthApiService {
     required String idToken,
     required String email,
     required String name,
+    String? mobile,
     String? avatar,
   }) async {
     try {
@@ -26,6 +27,7 @@ class AuthApiService {
           'id_token': idToken,
           'email': email,
           'name': name,
+          'mobile': mobile,
           'avatar': avatar,
         },
         options: Options(

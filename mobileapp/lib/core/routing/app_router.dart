@@ -4,6 +4,7 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/otp_verification_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/auth/screens/google_registration_screen.dart';
 import '../../features/templates/screens/home_screen.dart';
 import '../../features/templates/screens/templates_screen.dart';
 import '../../features/templates/screens/template_details_screen.dart';
@@ -66,6 +67,17 @@ class AppRouter {
           return OtpVerificationScreen(
             phoneNumber: extra?['phoneNumber'] ?? '',
             isRegistration: extra?['isRegistration'] ?? false,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/google-registration',
+        name: 'google-registration',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return GoogleRegistrationScreen(
+            googleUser: extra?['googleUser'],
+            idToken: extra?['idToken'] ?? '',
           );
         },
       ),
