@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../services/auth_api_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -14,6 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+  final AuthApiService _authApiService = AuthApiService();
   bool _isLoading = false;
   bool _agreeToTerms = false;
 
@@ -40,16 +42,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement registration logic
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      // Call backend to send OTP for registration
+      final mobile = '+91${_phoneController.text.trim()}';
+      final response = await _authApiService.sendOtp(mobile);
       
-      if (mounted) {
+      if (!mounted) return;
+
+      if (response.isSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            backgroundColor: Colors.green,
+          ),
+        );
+        
         context.pushNamed(
           'otp-verification',
           extra: {
-            'phoneNumber': _phoneController.text.trim(),
+            'phoneNumber': mobile,
             'isRegistration': true,
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
           },
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } catch (e) {
