@@ -93,8 +93,8 @@ class MSG91Service
                 'mode' => 'development'
             ]);
 
-            // In development, accept any 6-digit OTP or "123456"
-            if (strlen($otp) === 6 && is_numeric($otp)) {
+            // In development, accept any 4-digit OTP or "1234"
+            if (strlen($otp) === 4 && is_numeric($otp)) {
                 return [
                     'success' => true,
                     'message' => 'OTP verified successfully (development mode)',
@@ -103,7 +103,7 @@ class MSG91Service
 
             return [
                 'success' => false,
-                'message' => 'Invalid OTP format. Please enter 6 digits.',
+                'message' => 'Invalid OTP format. Please enter 4 digits.',
             ];
         }
 

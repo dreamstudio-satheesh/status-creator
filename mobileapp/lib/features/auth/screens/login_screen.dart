@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../services/google_auth_service.dart';
+import '../services/auth_api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -13,6 +15,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
+  final GoogleAuthService _googleAuthService = GoogleAuthService();
+  final AuthApiService _authApiService = AuthApiService();
 
   @override
   void dispose() {
@@ -55,27 +60,64 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _signInWithGoogle() async {
-    setState(() => _isLoading = true);
+    setState(() => _isGoogleLoading = true);
 
     try {
-      // TODO: Implement Google Sign-In
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final result = await _googleAuthService.signInWithGoogle();
       
-      if (mounted) {
-        context.go('/home');
+      if (!mounted) return;
+
+      if (result.isSuccess) {
+        // Send Firebase user data to backend for authentication
+        final authResponse = await _authApiService.authenticateWithGoogle(
+          idToken: result.idToken!,
+          email: result.firebaseUser!.email!,
+          name: result.firebaseUser!.displayName ?? 'User',
+          avatar: result.firebaseUser!.photoURL,
+        );
+
+        if (!mounted) return;
+
+        if (authResponse.isSuccess) {
+          // TODO: Store token and user data in secure storage
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Welcome, ${authResponse.user?.name ?? 'User'}!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          context.go('/home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Backend authentication failed: ${authResponse.message}'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      } else if (result.isCancelled) {
+        // User cancelled sign-in, no action needed
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error ?? 'Google Sign-In failed'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Google Sign-In failed: ${e.toString()}'),
+            content: Text('Unexpected error: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isGoogleLoading = false);
       }
     }
   }
@@ -152,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 // Send OTP Button
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _sendOTP,
+                  onPressed: (_isLoading || _isGoogleLoading) ? null : _sendOTP,
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
@@ -195,9 +237,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 // Google Sign-In Button
                 OutlinedButton.icon(
-                  onPressed: _isLoading ? null : _signInWithGoogle,
-                  icon: const Icon(Icons.login, size: 20),
-                  label: const Text('Continue with Google'),
+                  onPressed: (_isLoading || _isGoogleLoading) ? null : _signInWithGoogle,
+                  icon: _isGoogleLoading 
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.login, size: 20),
+                  label: Text(_isGoogleLoading ? 'Signing in...' : 'Continue with Google'),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),

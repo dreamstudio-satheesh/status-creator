@@ -25,6 +25,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/resend-otp', [\App\Http\Controllers\AuthController::class, 'resendOtp']);
         Route::get('/google/redirect', [\App\Http\Controllers\AuthController::class, 'googleRedirect']);
         Route::get('/google/callback', [\App\Http\Controllers\AuthController::class, 'googleCallback']);
+        Route::post('/google/authenticate', [\App\Http\Controllers\AuthController::class, 'googleAuthenticate']);
     });
 
     // Password reset routes

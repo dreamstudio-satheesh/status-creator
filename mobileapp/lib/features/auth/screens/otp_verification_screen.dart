@@ -19,10 +19,10 @@ class OtpVerificationScreen extends StatefulWidget {
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   final List<TextEditingController> _otpControllers = List.generate(
-    6,
+    4,
     (index) => TextEditingController(),
   );
-  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+  final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
   
   bool _isLoading = false;
   bool _canResend = false;
@@ -68,14 +68,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   void _onOtpChanged(String value, int index) {
-    if (value.isNotEmpty && index < 5) {
+    if (value.isNotEmpty && index < 3) {
       _focusNodes[index + 1].requestFocus();
     } else if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
     }
 
     // Auto-verify when all fields are filled
-    if (index == 5 && value.isNotEmpty) {
+    if (index == 3 && value.isNotEmpty) {
       _verifyOtp();
     }
   }
@@ -87,7 +87,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   void _verifyOtp() async {
     final otpCode = _getOtpCode();
     
-    if (otpCode.length != 6) {
+    if (otpCode.length != 4) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter the complete OTP')),
       );
@@ -195,7 +195,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         color: theme.colorScheme.onBackground.withOpacity(0.7),
                       ),
                       children: [
-                        const TextSpan(text: 'We sent a 6-digit code to '),
+                        const TextSpan(text: 'We sent a 4-digit code to '),
                         TextSpan(
                           text: '+91 ${widget.phoneNumber}',
                           style: const TextStyle(fontWeight: FontWeight.w600),
@@ -211,7 +211,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               // OTP Input Fields
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(6, (index) {
+                children: List.generate(4, (index) {
                   return SizedBox(
                     width: 50,
                     child: TextFormField(

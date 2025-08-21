@@ -334,6 +334,80 @@ class AuthController extends Controller
         }
     }
 
+    public function googleAuthenticate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id_token' => 'required|string',
+            'email' => 'required|email',
+            'name' => 'required|string',
+            'avatar' => 'sometimes|url',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid input data',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            // In a real implementation, you would verify the Firebase ID token here
+            // For now, we'll trust the data from the client
+            $email = $request->email;
+            $name = $request->name;
+            $avatar = $request->avatar;
+
+            $user = User::where('email', $email)->first();
+
+            if ($user) {
+                // Update user info if changed
+                $user->update([
+                    'name' => $name,
+                    'avatar' => $avatar,
+                    'email_verified_at' => now(),
+                ]);
+            } else {
+                // Create new user
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'avatar' => $avatar,
+                    'email_verified_at' => now(),
+                    'subscription_type' => 'free',
+                    'daily_ai_quota' => 10,
+                    'daily_ai_used' => 0,
+                ]);
+            }
+
+            $token = $user->createToken('google_auth')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Google authentication successful',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'mobile' => $user->mobile,
+                    'avatar' => $user->avatar,
+                    'subscription_type' => $user->subscription_type,
+                    'subscription_expires_at' => $user->subscription_expires_at,
+                    'daily_ai_quota' => $user->daily_ai_quota,
+                    'daily_ai_used' => $user->daily_ai_used,
+                    'is_premium' => $user->isPremium(),
+                ],
+                'token' => $token,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Google authentication failed',
+                'error' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

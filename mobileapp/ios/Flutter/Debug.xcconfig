@@ -1,1 +1,4 @@
 #include "Generated.xcconfig"
+
+// Flutter iOS Debug Configuration
+PRODUCT_BUNDLE_IDENTIFIER = com.dreamcoderz.status
