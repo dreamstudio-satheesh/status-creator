@@ -89,7 +89,7 @@ class AuthController extends Controller
 
         RateLimiter::hit($rateLimitKey, 300); // 5 minutes decay
 
-        $otp = sprintf('%06d', mt_rand(100000, 999999));
+        $otp = sprintf('%04d', mt_rand(1000, 9999));
         $otpKey = 'otp:' . $mobile;
         
         Cache::put($otpKey, [
@@ -125,7 +125,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'mobile' => 'required|string|regex:/^[+]?[0-9]{10,15}$/',
-            'otp' => 'required|string|min:4|max:6',
+            'otp' => 'required|string|size:4',
         ]);
 
         if ($validator->fails()) {
@@ -260,7 +260,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $otp = sprintf('%06d', mt_rand(100000, 999999));
+        $otp = sprintf('%04d', mt_rand(1000, 9999));
         
         Cache::put($otpKey, [
             'otp' => $otp,
