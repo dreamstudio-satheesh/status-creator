@@ -18,6 +18,17 @@ Route::get('/health', function () {
 
 // Public routes (no authentication required)
 Route::prefix('v1')->group(function () {
+    // Health check endpoint
+    Route::get('/health', function () {
+        return response()->json([
+            'status' => 'OK',
+            'message' => 'Tamil Status Creator API is running',
+            'timestamp' => now(),
+            'version' => '1.0.0',
+            'environment' => app()->environment(),
+        ]);
+    });
+    
     // Authentication routes
     Route::prefix('auth')->middleware('throttle:auth')->group(function () {
         Route::post('/send-otp', [\App\Http\Controllers\AuthController::class, 'sendOtp']);
