@@ -185,31 +185,7 @@
                     </div>
                 </form>
 
-                <!-- Demo Credentials (for development) -->
-                @if(app()->environment('local'))
-                <div class="mt-8 p-4 glass-card border border-accent-200/30 bg-accent-50/10">
-                    <h3 class="text-sm font-semibold text-white mb-3 flex items-center">
-                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
-                        </svg>
-                        Demo Access
-                    </h3>
-                    <div class="text-xs text-white/80 space-y-2">
-                        <div class="flex justify-between items-center p-2 bg-white/5 rounded-lg backdrop-blur-sm">
-                            <span class="font-medium">Super Admin:</span>
-                            <code class="text-accent-300">admin@example.com / admin123</code>
-                        </div>
-                        <div class="flex justify-between items-center p-2 bg-white/5 rounded-lg backdrop-blur-sm">
-                            <span class="font-medium">Admin:</span>
-                            <code class="text-accent-300">admin.user@example.com / admin123</code>
-                        </div>
-                        <div class="flex justify-between items-center p-2 bg-white/5 rounded-lg backdrop-blur-sm">
-                            <span class="font-medium">Moderator:</span>
-                            <code class="text-accent-300">moderator@example.com / admin123</code>
-                        </div>
-                    </div>
-                </div>
-                @endif
+             
             </div>
 
             <!-- Status Messages -->
