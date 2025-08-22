@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
+import '../../features/auth/services/auth_api_service.dart';
 
 class SecureStorage {
   static const _storage = FlutterSecureStorage(
@@ -180,5 +181,31 @@ class SecureStorage {
     }
     
     return await read(key);
+  }
+
+  // Authentication specific methods
+  Future<void> saveAuthToken(String token) async {
+    await write('auth_token', token);
+  }
+
+  Future<String?> getAuthToken() async {
+    return await read('auth_token');
+  }
+
+  Future<void> saveUserData(AuthUser user) async {
+    await writeJson('user_data', user.toJson());
+  }
+
+  Future<AuthUser?> getUserData() async {
+    final userData = await readJson('user_data');
+    if (userData != null) {
+      return AuthUser.fromJson(userData);
+    }
+    return null;
+  }
+
+  Future<void> clearAuthData() async {
+    await delete('auth_token');
+    await delete('user_data');
   }
 }

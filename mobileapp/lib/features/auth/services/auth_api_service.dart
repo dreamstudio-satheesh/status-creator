@@ -68,13 +68,25 @@ class AuthApiService {
     }
   }
 
-  Future<OtpResponse> sendOtp(String mobile) async {
+  Future<AuthResponse> register({
+    required String name,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+    String? mobile,
+  }) async {
     try {
-      developer.log('Sending OTP request for mobile: $mobile');
+      developer.log('Sending registration request for email: $email');
 
       final response = await _dio.post(
-        '$baseUrl/auth/send-otp',
-        data: {'mobile': mobile},
+        '$baseUrl/auth/register',
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+          'mobile': mobile,
+        },
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -83,41 +95,40 @@ class AuthApiService {
         ),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         final data = response.data;
-        return OtpResponse.success(
-          message: data['message'] ?? 'OTP sent successfully',
-          expiresIn: data['expires_in'] ?? 300,
-          developmentOtp: data['development_otp'], // Only in development
+        return AuthResponse.success(
+          message: data['message'] ?? 'Registration successful',
+          user: AuthUser.fromJson(data['user']),
         );
       } else {
-        return OtpResponse.error('Failed to send OTP');
+        return AuthResponse.error('Registration failed');
       }
     } on DioException catch (e) {
-      developer.log('Dio error during OTP send: ${e.message}');
+      developer.log('Dio error during registration: ${e.message}');
       
       if (e.response != null) {
         final errorData = e.response!.data;
-        final errorMessage = errorData['message'] ?? 'Failed to send OTP';
-        return OtpResponse.error(errorMessage);
+        final errorMessage = errorData['message'] ?? 'Registration failed';
+        return AuthResponse.error(errorMessage);
       }
       
-      return OtpResponse.error('Network error: ${e.message}');
+      return AuthResponse.error('Network error: ${e.message}');
     } catch (e) {
-      developer.log('Unexpected error during OTP send: $e');
-      return OtpResponse.error('Unexpected error: ${e.toString()}');
+      developer.log('Unexpected error during registration: $e');
+      return AuthResponse.error('Unexpected error: ${e.toString()}');
     }
   }
 
-  Future<OtpVerifyResponse> verifyOtp(String mobile, String otp) async {
+  Future<LoginResponse> login(String email, String password) async {
     try {
-      developer.log('Verifying OTP for mobile: $mobile');
+      developer.log('Sending login request for email: $email');
 
       final response = await _dio.post(
-        '$baseUrl/auth/verify-otp',
+        '$baseUrl/auth/login',
         data: {
-          'mobile': mobile,
-          'otp': otp,
+          'email': email,
+          'password': password,
         },
         options: Options(
           headers: {
@@ -129,27 +140,66 @@ class AuthApiService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        return OtpVerifyResponse.success(
+        return LoginResponse.success(
           token: data['token'],
           user: AuthUser.fromJson(data['user']),
-          message: data['message'] ?? 'OTP verified successfully',
+          message: data['message'] ?? 'Login successful',
         );
       } else {
-        return OtpVerifyResponse.error('OTP verification failed');
+        return LoginResponse.error('Login failed');
       }
     } on DioException catch (e) {
-      developer.log('Dio error during OTP verification: ${e.message}');
+      developer.log('Dio error during login: ${e.message}');
       
       if (e.response != null) {
         final errorData = e.response!.data;
-        final errorMessage = errorData['message'] ?? 'OTP verification failed';
-        return OtpVerifyResponse.error(errorMessage);
+        final errorMessage = errorData['message'] ?? 'Login failed';
+        return LoginResponse.error(errorMessage);
       }
       
-      return OtpVerifyResponse.error('Network error: ${e.message}');
+      return LoginResponse.error('Network error: ${e.message}');
     } catch (e) {
-      developer.log('Unexpected error during OTP verification: $e');
-      return OtpVerifyResponse.error('Unexpected error: ${e.toString()}');
+      developer.log('Unexpected error during login: $e');
+      return LoginResponse.error('Unexpected error: ${e.toString()}');
+    }
+  }
+
+  Future<AuthResponse> forgotPassword(String email) async {
+    try {
+      developer.log('Sending forgot password request for email: $email');
+
+      final response = await _dio.post(
+        '$baseUrl/auth/forgot-password',
+        data: {'email': email},
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        return AuthResponse.success(
+          message: data['message'] ?? 'Password reset link sent to your email',
+        );
+      } else {
+        return AuthResponse.error('Failed to send password reset link');
+      }
+    } on DioException catch (e) {
+      developer.log('Dio error during forgot password: ${e.message}');
+      
+      if (e.response != null) {
+        final errorData = e.response!.data;
+        final errorMessage = errorData['message'] ?? 'Failed to send password reset link';
+        return AuthResponse.error(errorMessage);
+      }
+      
+      return AuthResponse.error('Network error: ${e.message}');
+    } catch (e) {
+      developer.log('Unexpected error during forgot password: $e');
+      return AuthResponse.error('Unexpected error: ${e.toString()}');
     }
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
-import '../../features/auth/screens/otp_verification_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/google_registration_screen.dart';
 import '../../features/templates/screens/home_screen.dart';
@@ -58,17 +57,6 @@ class AppRouter {
             builder: (context, state) => const ForgotPasswordScreen(),
           ),
         ],
-      ),
-      GoRoute(
-        path: Routes.otpVerification,
-        name: 'otp-verification',
-        builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>?;
-          return OtpVerificationScreen(
-            phoneNumber: extra?['phoneNumber'] ?? '',
-            isRegistration: extra?['isRegistration'] ?? false,
-          );
-        },
       ),
       GoRoute(
         path: '/google-registration',
@@ -251,7 +239,6 @@ class AppRouter {
     const authRoutes = [
       Routes.login,
       Routes.register,
-      Routes.otpVerification,
       Routes.forgotPassword,
     ];
     return authRoutes.any((route) => path.startsWith(route));
