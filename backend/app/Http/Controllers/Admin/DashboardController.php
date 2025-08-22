@@ -73,8 +73,7 @@ class DashboardController extends Controller
 
         $recentActivity = Cache::remember('admin_recent_activity', 60, function () {
             return [
-                'new_users' => User::with('profile')
-                    ->latest()
+                'new_users' => User::latest()
                     ->limit(5)
                     ->get()
                     ->map(function ($user) {
