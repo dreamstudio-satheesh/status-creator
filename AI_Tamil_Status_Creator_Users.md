@@ -26,7 +26,16 @@ The AI Tamil Status Creator is a comprehensive Flutter + Laravel application des
 ### 1.2 Purpose and Scope
 This SRS document defines the functional and non-functional requirements for both the admin panel (Laravel-based) and mobile application (Flutter-based) components of the AI Tamil Status Creator system.
 
-### 1.3 Target Users
+### 1.3 Authentication System Update
+**Important Note**: This system has migrated from OTP-based authentication to email/password authentication for improved user experience and reduced dependency on SMS services. The current authentication system uses:
+- **Email/Password Authentication** as the primary method
+- **Google OAuth** for social login
+- **Email Verification** for account security
+- **Biometric Authentication** (optional) for enhanced mobile security
+
+Previous OTP/SMS integration (MSG91) has been removed in favor of more reliable email-based verification.
+
+### 1.4 Target Users
 The AI Tamil Status Creator app is designed for Tamil-speaking users who want to create and share status images for social media platforms like WhatsApp, Instagram, and Facebook. Here are the key user groups this system supports:
 
 #### Primary Target Users
@@ -97,6 +106,8 @@ The app essentially serves anyone in the Tamil-speaking community who wants to c
 - **Cache/Queue**: File-based cache and database queues (no Redis dependency)
 - **Storage**: Local file storage for development, S3/MinIO for production
 - **AI Integration**: OpenRouter LLM + BLIP/CLIP/OFA for image captioning
+- **Authentication**: Email/Password + Google OAuth (SMS/OTP services removed)
+- **Notifications**: Email-based notifications (SMTP) instead of SMS
 
 ### 2.2 System Components
 - **Admin Panel**: Laravel Blade-based web interface with TailwindCSS
@@ -285,10 +296,12 @@ The app essentially serves anyone in the Tamil-speaking community who wants to c
 ### 5.1 Authentication & Onboarding
 
 #### 5.1.1 User Authentication
-- **Email/Password Login**: Standard email and password authentication
-- **Google OAuth**: Social login integration
-- **User Registration**: Complete profile setup process
-- **Security Features**: Biometric authentication (fingerprint/face)
+**Current Authentication Methods** (OTP system removed):
+- **Email/Password Login**: Primary authentication method with strong password requirements
+- **Google OAuth**: Streamlined social login integration
+- **Email Verification**: Secure account verification process (replaces SMS OTP)
+- **User Registration**: Comprehensive profile setup with email confirmation
+- **Security Features**: Biometric authentication (fingerprint/face) for enhanced mobile security
 
 #### 5.1.2 Onboarding Experience
 - **App Introduction**: Feature overview and benefits
@@ -426,11 +439,13 @@ The app essentially serves anyone in the Tamil-speaking community who wants to c
 - **Currency Support**: Multiple currency options
 
 ### 7.3 Third-party Services
-- **Google OAuth**: Social authentication
-- **Firebase Analytics**: User behavior tracking
-- **Push Notifications**: Engagement and updates
-- **Social Media APIs**: Direct sharing capabilities
-- **Email Service**: User notifications and communications
+**Updated Service Integration** (SMS services removed):
+- **Google OAuth**: Social authentication integration
+- **Firebase Analytics**: User behavior tracking and insights
+- **Push Notifications**: User engagement and app updates
+- **Social Media APIs**: Direct sharing to WhatsApp, Instagram, Facebook
+- **Email Service**: SMTP-based notifications and account verification
+- **Payment Gateway**: Razorpay for subscription management
 
 ---
 
@@ -469,11 +484,13 @@ The app essentially serves anyone in the Tamil-speaking community who wants to c
 - **SQL Injection Prevention**: Parameterized queries
 
 ### 9.2 Authentication Security
-- **Password Requirements**: Strong password policies
-- **Email Verification**: Secure email verification process
-- **Session Management**: Secure session handling
-- **Brute Force Protection**: Login attempt limiting
-- **Account Lockout**: Automatic protection mechanisms
+**Enhanced Security Model** (post-OTP removal):
+- **Password Requirements**: Strong password policies with complexity validation
+- **Email Verification**: Secure email-based account verification (replaces OTP)
+- **Session Management**: JWT-based secure session handling
+- **Brute Force Protection**: Progressive login attempt limiting
+- **Account Lockout**: Automatic protection with email recovery
+- **Multi-Factor Authentication**: Biometric options on mobile devices
 
 ### 9.3 API Security
 - **Rate Limiting**: Per-user API limits

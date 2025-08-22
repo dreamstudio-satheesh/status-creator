@@ -34,8 +34,8 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->ip());
         });
 
-        RateLimiter::for('otp', function (Request $request) {
-            return Limit::perMinute(3)->by($request->input('mobile'));
+        RateLimiter::for('email', function (Request $request) {
+            return Limit::perMinute(5)->by($request->input('email'));
         });
 
         RateLimiter::for('google-auth', function (Request $request) {

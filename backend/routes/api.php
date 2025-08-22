@@ -31,9 +31,9 @@ Route::prefix('v1')->group(function () {
     
     // Authentication routes
     Route::prefix('auth')->middleware('throttle:auth')->group(function () {
-        Route::post('/send-otp', [\App\Http\Controllers\AuthController::class, 'sendOtp']);
-        Route::post('/verify-otp', [\App\Http\Controllers\AuthController::class, 'verifyOtp']);
-        Route::post('/resend-otp', [\App\Http\Controllers\AuthController::class, 'resendOtp']);
+        Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register']);
+        Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
+        Route::post('/forgot-password', [\App\Http\Controllers\AuthController::class, 'forgotPassword']);
         Route::get('/google/redirect', [\App\Http\Controllers\AuthController::class, 'googleRedirect']);
         Route::get('/google/callback', [\App\Http\Controllers\AuthController::class, 'googleCallback']);
         Route::post('/google/authenticate', [\App\Http\Controllers\AuthController::class, 'googleAuthenticate']);
@@ -41,8 +41,6 @@ Route::prefix('v1')->group(function () {
 
     // Password reset routes
     Route::prefix('password')->middleware('throttle:auth')->group(function () {
-        Route::post('/send-reset-otp', [\App\Http\Controllers\PasswordResetController::class, 'sendResetOtp']);
-        Route::post('/verify-reset-otp', [\App\Http\Controllers\PasswordResetController::class, 'verifyResetOtp']);
         Route::post('/reset', [\App\Http\Controllers\PasswordResetController::class, 'resetPassword']);
         Route::post('/email-reset-link', [\App\Http\Controllers\PasswordResetController::class, 'sendEmailResetLink']);
     });

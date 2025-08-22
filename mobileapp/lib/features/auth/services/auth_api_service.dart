@@ -189,59 +189,55 @@ class GoogleAuthResponse {
   }
 }
 
-class OtpResponse {
+class AuthResponse {
   final bool isSuccess;
   final String message;
-  final int? expiresIn;
-  final String? developmentOtp;
+  final AuthUser? user;
 
-  OtpResponse._({
+  AuthResponse._({
     required this.isSuccess,
     required this.message,
-    this.expiresIn,
-    this.developmentOtp,
+    this.user,
   });
 
-  factory OtpResponse.success({
+  factory AuthResponse.success({
     required String message,
-    int? expiresIn,
-    String? developmentOtp,
+    AuthUser? user,
   }) {
-    return OtpResponse._(
+    return AuthResponse._(
       isSuccess: true,
       message: message,
-      expiresIn: expiresIn,
-      developmentOtp: developmentOtp,
+      user: user,
     );
   }
 
-  factory OtpResponse.error(String message) {
-    return OtpResponse._(
+  factory AuthResponse.error(String message) {
+    return AuthResponse._(
       isSuccess: false,
       message: message,
     );
   }
 }
 
-class OtpVerifyResponse {
+class LoginResponse {
   final bool isSuccess;
   final String? token;
   final AuthUser? user;
   final String message;
 
-  OtpVerifyResponse._({
+  LoginResponse._({
     required this.isSuccess,
     this.token,
     this.user,
     required this.message,
   });
 
-  factory OtpVerifyResponse.success({
+  factory LoginResponse.success({
     required String token,
     required AuthUser user,
     required String message,
   }) {
-    return OtpVerifyResponse._(
+    return LoginResponse._(
       isSuccess: true,
       token: token,
       user: user,
@@ -249,8 +245,8 @@ class OtpVerifyResponse {
     );
   }
 
-  factory OtpVerifyResponse.error(String message) {
-    return OtpVerifyResponse._(
+  factory LoginResponse.error(String message) {
+    return LoginResponse._(
       isSuccess: false,
       message: message,
     );

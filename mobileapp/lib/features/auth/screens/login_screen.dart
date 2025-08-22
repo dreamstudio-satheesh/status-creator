@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../services/google_auth_service.dart';
 import '../services/auth_api_service.dart';
+import '../../../core/storage/secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -13,31 +13,41 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _isGoogleLoading = false;
+  bool _isPasswordVisible = false;
   final GoogleAuthService _googleAuthService = GoogleAuthService();
   final AuthApiService _authApiService = AuthApiService();
+  final SecureStorage _secureStorage = SecureStorage();
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  void _sendOTP() async {
+  void _login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      // Call backend to send OTP
-      final mobile = '+91${_phoneController.text.trim()}';
-      final response = await _authApiService.sendOtp(mobile);
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      final response = await _authApiService.login(email, password);
       
       if (!mounted) return;
 
       if (response.isSuccess) {
+        // Save token and user data
+        await _secureStorage.saveAuthToken(response.token!);
+        await _secureStorage.saveUserData(response.user!);
+
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(response.message),
@@ -45,13 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
         
-        context.pushNamed(
-          'otp-verification',
-          extra: {
-            'phoneNumber': mobile,
-            'isRegistration': false,
-          },
-        );
+        // Navigate to home
+        context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -64,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send OTP: ${e.toString()}'),
+            content: Text('Login failed: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -163,26 +168,54 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 const SizedBox(height: 48),
                 
-                // Phone Number Input
+                // Email Input
                 TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(10),
-                  ],
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
                   decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    hintText: 'Enter your phone number',
-                    prefixIcon: Icon(Icons.phone),
-                    prefixText: '+91 ',
+                    labelText: 'Email',
+                    hintText: 'Enter your email address',
+                    prefixIcon: Icon(Icons.email),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
+                      return 'Please enter your email';
                     }
-                    if (value.length != 10) {
-                      return 'Please enter a valid 10-digit phone number';
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                      return 'Please enter a valid email address';
+                    }
+                    return null;
+                  },
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Password Input
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: !_isPasswordVisible,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    hintText: 'Enter your password',
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your password';
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
                     }
                     return null;
                   },
@@ -190,19 +223,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 const SizedBox(height: 24),
                 
-                // Send OTP Button
+                // Login Button
                 ElevatedButton(
-                  onPressed: (_isLoading || _isGoogleLoading) ? null : _sendOTP,
+                  onPressed: (_isLoading || _isGoogleLoading) ? null : _login,
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Send OTP'),
+                      : const Text('Sign In'),
                 ),
                 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 
                 // Forgot Password Link
                 Center(

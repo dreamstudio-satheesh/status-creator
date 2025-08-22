@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->string('background_image', 500)->nullable();
             $table->text('quote_text'); // English quote
-            $table->text('quote_text_ta'); // Tamil quote
+            $table->text('quote_text_ta')->nullable(); // Tamil quote
             $table->string('font_family', 100)->default('Tamil');
             $table->integer('font_size')->default(24);
             $table->string('text_color', 7)->default('#FFFFFF');

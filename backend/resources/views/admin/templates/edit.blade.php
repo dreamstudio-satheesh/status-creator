@@ -115,10 +115,10 @@
                                 <label for="font_size" class="label-premium">Font Size</label>
                                 <select id="font_size" name="font_size" 
                                         class="input-premium @error('font_size') border-danger-300 focus:ring-danger-500 @enderror">
-                                    <option value="small" {{ old('font_size', $template->font_size) == 'small' ? 'selected' : '' }}>Small</option>
-                                    <option value="medium" {{ old('font_size', $template->font_size ?? 'medium') == 'medium' ? 'selected' : '' }}>Medium</option>
-                                    <option value="large" {{ old('font_size', $template->font_size) == 'large' ? 'selected' : '' }}>Large</option>
-                                    <option value="extra-large" {{ old('font_size', $template->font_size) == 'extra-large' ? 'selected' : '' }}>Extra Large</option>
+                                    <option value="14" {{ old('font_size', $template->font_size) == '14' ? 'selected' : '' }}>Small (14px)</option>
+                                    <option value="18" {{ old('font_size', $template->font_size ?? '18') == '18' ? 'selected' : '' }}>Medium (18px)</option>
+                                    <option value="24" {{ old('font_size', $template->font_size) == '24' ? 'selected' : '' }}>Large (24px)</option>
+                                    <option value="32" {{ old('font_size', $template->font_size) == '32' ? 'selected' : '' }}>Extra Large (32px)</option>
                                 </select>
                                 @error('font_size')
                                     <p class="mt-1 text-sm text-danger-600">{{ $message }}</p>
@@ -325,14 +325,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const color = textColor.value || '#ffffff';
         const bgColor = backgroundColor.value || '#3b82f6';
         const alignment = textAlignment.value || 'center';
-        const size = fontSize.value || 'medium';
+        const size = fontSize.value || '18';
         
         let sizeClass = 'text-base';
-        switch(size) {
-            case 'small': sizeClass = 'text-sm'; break;
-            case 'medium': sizeClass = 'text-base'; break;
-            case 'large': sizeClass = 'text-lg'; break;
-            case 'extra-large': sizeClass = 'text-xl'; break;
+        const sizeValue = parseInt(size);
+        if (sizeValue <= 14) {
+            sizeClass = 'text-sm';
+        } else if (sizeValue <= 18) {
+            sizeClass = 'text-base';
+        } else if (sizeValue <= 24) {
+            sizeClass = 'text-lg';
+        } else {
+            sizeClass = 'text-xl';
         }
         
         previewElement.style.color = color;

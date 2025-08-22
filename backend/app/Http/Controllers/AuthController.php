@@ -3,129 +3,112 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Services\MSG91Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
-    private MSG91Service $msg91Service;
-
-    public function __construct(MSG91Service $msg91Service)
-    {
-        $this->msg91Service = $msg91Service;
-    }
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/send-otp",
+     *     path="/api/v1/auth/register",
      *     tags={"Authentication"},
-     *     summary="Send OTP to mobile number",
-     *     description="Sends a 6-digit OTP to the provided mobile number for authentication",
+     *     summary="Register new user with email and password",
+     *     description="Creates a new user account with email verification",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="mobile", type="string", example="+919876543210", description="Mobile number with country code")
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="john@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="password_confirmation", type="string", example="password123"),
+     *             @OA\Property(property="mobile", type="string", example="+919876543210", description="Optional mobile number")
      *         )
      *     ),
      *     @OA\Response(
-     *         response=200,
-     *         description="OTP sent successfully",
+     *         response=201,
+     *         description="User registered successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="OTP sent successfully to your mobile number"),
-     *             @OA\Property(property="expires_in", type="integer", example=300)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Invalid mobile number format"),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=429,
-     *         description="Too many requests",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Too many OTP requests. Please try again in 5 minutes.")
+     *             @OA\Property(property="message", type="string", example="Registration successful. Please check your email for verification."),
+     *             @OA\Property(property="user", type="object")
      *         )
      *     )
      * )
      */
-    public function sendOtp(Request $request)
+    public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile' => 'required|string|regex:/^[+]?[0-9]{10,15}$/',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'mobile' => 'nullable|string|regex:/^[+]?[0-9]{10,15}$/',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid mobile number format',
+                'message' => 'Validation failed',
                 'errors' => $validator->errors(),
             ], 422);
         }
 
-        $mobile = $request->mobile;
-        $rateLimitKey = 'send_otp:' . $mobile;
-
-        if (RateLimiter::tooManyAttempts($rateLimitKey, 3)) {
-            $seconds = RateLimiter::availableIn($rateLimitKey);
+        $rateLimitKey = 'register:' . $request->ip();
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Too many OTP requests. Please try again in ' . ceil($seconds / 60) . ' minutes.',
+                'message' => 'Too many registration attempts. Please try again later.',
             ], 429);
         }
 
-        RateLimiter::hit($rateLimitKey, 300); // 5 minutes decay
+        RateLimiter::hit($rateLimitKey, 3600); // 1 hour decay
 
-        $otp = sprintf('%04d', mt_rand(1000, 9999));
-        $otpKey = 'otp:' . $mobile;
-        
-        Cache::put($otpKey, [
-            'otp' => $otp,
-            'attempts' => 0,
-            'created_at' => now(),
-        ], 300); // 5 minutes
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'mobile' => $request->mobile,
+            'subscription_type' => 'free',
+            'daily_ai_quota' => 10,
+            'daily_ai_used' => 0,
+        ]);
 
-        $result = $this->msg91Service->sendOTP($mobile, $otp);
-
-        if ($result['success']) {
-            $response = [
-                'success' => true,
-                'message' => 'OTP sent successfully to your mobile number',
-                'expires_in' => 300,
-            ];
-
-            // Include OTP in development mode for testing
-            if (app()->environment(['local', 'testing']) || config('app.debug')) {
-                $response['development_otp'] = $otp;
-            }
-
-            return response()->json($response);
-        }
+        // Send email verification
+        event(new Registered($user));
 
         return response()->json([
-            'success' => false,
-            'message' => $result['message'],
-        ], 422);
+            'success' => true,
+            'message' => 'Registration successful. Please check your email for verification.',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'mobile' => $user->mobile,
+                'email_verified_at' => $user->email_verified_at,
+            ],
+        ], 201);
     }
 
-    public function verifyOtp(Request $request)
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/login",
+     *     tags={"Authentication"},
+     *     summary="Login with email and password",
+     *     description="Authenticates user with email and password"
+     * )
+     */
+    public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile' => 'required|string|regex:/^[+]?[0-9]{10,15}$/',
-            'otp' => 'required|string|size:4',
+            'email' => 'required|email',
+            'password' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -136,149 +119,98 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $mobile = $request->mobile;
-        $otp = $request->otp;
-        $otpKey = 'otp:' . $mobile;
-        $rateLimitKey = 'verify_otp:' . $mobile;
+        $email = $request->email;
+        $rateLimitKey = 'login:' . $email;
 
         if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
             return response()->json([
                 'success' => false,
-                'message' => 'Too many verification attempts. Please request a new OTP.',
+                'message' => 'Too many login attempts. Please try again in ' . ceil($seconds / 60) . ' minutes.',
             ], 429);
         }
 
-        $otpData = Cache::get($otpKey);
-
-        if (!$otpData) {
-            return response()->json([
-                'success' => false,
-                'message' => 'OTP expired or not found. Please request a new OTP.',
-            ], 422);
-        }
-
-        if ($otpData['attempts'] >= 3) {
-            Cache::forget($otpKey);
-            return response()->json([
-                'success' => false,
-                'message' => 'Maximum OTP attempts exceeded. Please request a new OTP.',
-            ], 422);
-        }
-
-        RateLimiter::hit($rateLimitKey, 300);
-
-        // Check for development OTP first (always allow for testing)
-        $isValidOtp = false;
-        if ($otp === '1212') {
-            $isValidOtp = true;
-        }
-        
-        // If not development OTP, check the actual OTP
-        if (!$isValidOtp && $otpData['otp'] !== $otp) {
-            $otpData['attempts']++;
-            Cache::put($otpKey, $otpData, 300);
+        if (!Auth::attempt(['email' => $email, 'password' => $request->password])) {
+            RateLimiter::hit($rateLimitKey, 900); // 15 minutes decay
             
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid OTP. ' . (3 - $otpData['attempts']) . ' attempts remaining.',
+                'message' => 'Invalid email or password.',
             ], 422);
         }
 
-        Cache::forget($otpKey);
         RateLimiter::clear($rateLimitKey);
+        $user = Auth::user();
 
-        $user = User::where('mobile', $mobile)->first();
-
-        if (!$user) {
-            $user = User::create([
-                'name' => 'User',
-                'email' => $mobile . '@mobile.app', // Generate email from mobile for unique constraint
-                'password' => Hash::make('mobile_user_' . $mobile), // Generate password for mobile users
-                'mobile' => $mobile,
-                'subscription_type' => 'free',
-                'daily_ai_quota' => 10,
-                'daily_ai_used' => 0,
-            ]);
-        }
-
-        $token = $user->createToken('mobile_auth')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'success' => true,
-            'message' => 'OTP verified successfully',
+            'message' => 'Login successful',
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
-                'mobile' => $user->mobile,
                 'email' => $user->email,
+                'mobile' => $user->mobile,
                 'avatar' => $user->avatar,
                 'subscription_type' => $user->subscription_type,
                 'subscription_expires_at' => $user->subscription_expires_at,
                 'daily_ai_quota' => $user->daily_ai_quota,
                 'daily_ai_used' => $user->daily_ai_used,
                 'is_premium' => $user->isPremium(),
+                'email_verified_at' => $user->email_verified_at,
             ],
             'token' => $token,
         ]);
     }
 
-    public function resendOtp(Request $request)
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/forgot-password",
+     *     tags={"Authentication"},
+     *     summary="Send password reset link",
+     *     description="Sends password reset link to user's email"
+     * )
+     */
+    public function forgotPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile' => 'required|string|regex:/^[+]?[0-9]{10,15}$/',
+            'email' => 'required|email',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid mobile number format',
+                'message' => 'Invalid email format',
                 'errors' => $validator->errors(),
             ], 422);
         }
 
-        $mobile = $request->mobile;
-        $rateLimitKey = 'resend_otp:' . $mobile;
+        $email = $request->email;
+        $rateLimitKey = 'forgot_password:' . $email;
 
-        if (RateLimiter::tooManyAttempts($rateLimitKey, 2)) {
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 3)) {
             $seconds = RateLimiter::availableIn($rateLimitKey);
             return response()->json([
                 'success' => false,
-                'message' => 'Too many resend requests. Please try again in ' . ceil($seconds / 60) . ' minutes.',
+                'message' => 'Too many password reset requests. Please try again in ' . ceil($seconds / 60) . ' minutes.',
             ], 429);
         }
 
-        RateLimiter::hit($rateLimitKey, 600); // 10 minutes decay
+        RateLimiter::hit($rateLimitKey, 3600); // 1 hour decay
 
-        $otpKey = 'otp:' . $mobile;
-        
-        if (!Cache::has($otpKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No active OTP session found. Please request a new OTP.',
-            ], 422);
-        }
+        $status = Password::sendResetLink(['email' => $email]);
 
-        $otp = sprintf('%04d', mt_rand(1000, 9999));
-        
-        Cache::put($otpKey, [
-            'otp' => $otp,
-            'attempts' => 0,
-            'created_at' => now(),
-        ], 300);
-
-        $result = $this->msg91Service->sendOTP($mobile, $otp);
-
-        if ($result['success']) {
+        if ($status === Password::RESET_LINK_SENT) {
             return response()->json([
                 'success' => true,
-                'message' => 'OTP resent successfully',
-                'expires_in' => 300,
+                'message' => 'Password reset link sent to your email.',
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => $result['message'],
+            'message' => 'Unable to send password reset link. Please check your email address.',
         ], 422);
     }
 

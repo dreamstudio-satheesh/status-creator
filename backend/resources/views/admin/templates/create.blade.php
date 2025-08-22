@@ -275,14 +275,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const color = textColor.value || '#ffffff';
         const bgColor = backgroundColor.value || '#3b82f6';
         const alignment = textAlignment.value || 'center';
-        const size = fontSize.value || 'medium';
+        const size = fontSize.value || '18';
         
         let sizeClass = 'text-base';
-        switch(size) {
-            case 'small': sizeClass = 'text-sm'; break;
-            case 'medium': sizeClass = 'text-base'; break;
-            case 'large': sizeClass = 'text-lg'; break;
-            case 'extra-large': sizeClass = 'text-xl'; break;
+        const sizeValue = parseInt(size);
+        if (sizeValue <= 14) {
+            sizeClass = 'text-sm';
+        } else if (sizeValue <= 18) {
+            sizeClass = 'text-base';
+        } else if (sizeValue <= 24) {
+            sizeClass = 'text-lg';
+        } else {
+            sizeClass = 'text-xl';
         }
         
         previewElement.style.color = color;
