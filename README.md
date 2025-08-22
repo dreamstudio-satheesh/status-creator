@@ -1,15 +1,16 @@
 # AI Tamil Status Creator
 
-A cost-efficient Flutter + Laravel application for creating and sharing Tamil status images for WhatsApp, Instagram, and other social platforms. The system minimizes LLM API costs using **prebuilt templates**, **bulk AI generation by admin**, and a **small image captioning model**.
+A cost-efficient Flutter + Laravel application for creating and sharing Tamil status images for WhatsApp, Instagram, and other social platforms. The system minimizes LLM API costs using **prebuilt templates**, **bulk AI generation by admin**, and a **small image captioning model**. Features modern email/password authentication with Google OAuth integration.
 
 ---
 
 ## 🌟 Features
 
 - **Authentication**
-  - Mobile OTP login via MSG91
-  - Google Sign-In  
+  - Email/Password authentication with email verification
+  - Google OAuth Sign-In  
   - Laravel Sanctum token authentication
+  - Biometric authentication support (mobile)
 
 - **Templates & Themes**
   - Prebuilt templates categorized by themes (Love, Motivation, Sad, etc.)
@@ -109,10 +110,6 @@ flutter run
 3. **Enable Developer Options & USB Debugging** on physical device
 4. **Accept Android licenses**: `flutter doctor --android-licenses`
 
-### iOS Development (macOS only)  
-1. **Install Xcode** from App Store
-2. **Install CocoaPods**: `sudo gem install cocoapods`
-3. **Setup iOS simulator** or connect physical device
 
 ### Wireless ADB for WSL/Linux Users
 Since WSL doesn't support USB passthrough:
@@ -142,7 +139,7 @@ flutter devices
 - **Database**: SQLite (development) / MySQL (production)  
 - **Cache**: File-based cache / Database cache
 - **Storage**: Local filesystem
-- **Authentication**: Laravel Sanctum, MSG91 OTP, Google OAuth
+- **Authentication**: Laravel Sanctum, Email/Password, Google OAuth
 - **AI**: OpenRouter LLM, Hugging Face image captioning
 - **Payments**: Razorpay / Stripe integration
 
@@ -159,7 +156,6 @@ status-creator/
 │   ├── lib/               # Dart source code
 │   ├── assets/            # Images, fonts, animations
 │   ├── android/           # Android project files
-│   └── ios/               # iOS project files
 └── README.md              # This documentation
 ```
 
@@ -205,7 +201,6 @@ flutter clean                    # Clean project
 flutter build apk                # Build debug APK
 flutter build apk --release      # Build release APK
 flutter build appbundle          # Build for Play Store
-flutter build ios               # Build for iOS (macOS only)
 
 # Code generation
 flutter packages pub run build_runner build    # Generate code
@@ -235,8 +230,12 @@ flutter test --coverage         # Test with coverage
    SESSION_DRIVER=database
    QUEUE_CONNECTION=database
    
-   # SMS Service (MSG91)
-   MSG91_API_KEY=your_msg91_api_key
+   # Email Service (SMTP)
+   MAIL_MAILER=smtp
+   MAIL_HOST=smtp.gmail.com
+   MAIL_PORT=587
+   MAIL_USERNAME=your_email@gmail.com
+   MAIL_PASSWORD=your_app_password
    
    # AI Services
    OPENROUTER_API_KEY=your_openrouter_api_key
@@ -261,8 +260,7 @@ flutter test --coverage         # Test with coverage
 
 ### Default Credentials
 - **Admin Panel**: admin@example.com / admin123
-- **Test Mobile**: 6379108040
-- **MSG91 API**: 464494A5TVsNXX0r68a5173cP1
+- **Test User**: test@example.com / password123
 
 ---
 
@@ -280,7 +278,6 @@ The application is production-ready for cPanel hosting:
 
 ### Flutter App Deployment
 - **Android**: Build APK/AAB and upload to Play Store
-- **iOS**: Build IPA and upload to App Store
 - **Configuration**: Update `.env` with production API URLs
 
 ---
