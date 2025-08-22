@@ -21,7 +21,7 @@ class AuthController extends Controller
      *     path="/api/v1/auth/register",
      *     tags={"Authentication"},
      *     summary="Register new user with email and password",
-     *     description="Creates a new user account with email verification",
+     *     description="Creates a new user account and automatically logs them in",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -37,8 +37,9 @@ class AuthController extends Controller
      *         description="User registered successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Registration successful. Please check your email for verification."),
-     *             @OA\Property(property="user", type="object")
+     *             @OA\Property(property="message", type="string", example="Registration successful. You are now logged in."),
+     *             @OA\Property(property="user", type="object"),
+     *             @OA\Property(property="token", type="string", example="1|abcd1234...")
      *         )
      *     )
      * )
@@ -78,21 +79,29 @@ class AuthController extends Controller
             'subscription_type' => 'free',
             'daily_ai_quota' => 10,
             'daily_ai_used' => 0,
+            'email_verified_at' => now(), // Auto-verify email on registration
         ]);
 
-        // Send email verification
-        event(new Registered($user));
+        // Create authentication token for immediate login
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'success' => true,
-            'message' => 'Registration successful. Please check your email for verification.',
+            'message' => 'Registration successful. You are now logged in.',
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'mobile' => $user->mobile,
+                'avatar' => $user->avatar,
+                'subscription_type' => $user->subscription_type,
+                'subscription_expires_at' => $user->subscription_expires_at,
+                'daily_ai_quota' => $user->daily_ai_quota,
+                'daily_ai_used' => $user->daily_ai_used,
+                'is_premium' => $user->isPremium(),
                 'email_verified_at' => $user->email_verified_at,
             ],
+            'token' => $token,
         ], 201);
     }
 
