@@ -22,6 +22,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'ai_quota' => \App\Http\Middleware\CheckAIQuota::class,
             'admin' => \App\Http\Middleware\AdminAuth::class,
         ]);
+        
+        // Configure authentication redirects
+        $middleware->redirectGuestsTo(function ($request) {
+            if ($request->is('admin/*')) {
+                return route('admin.login');
+            }
+            return route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

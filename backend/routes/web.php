@@ -8,6 +8,11 @@ Route::get('/', function () {
     return redirect()->route('admin.login');
 });
 
+// Default login route (for non-admin redirects)
+Route::get('/login', function () {
+    return redirect()->route('admin.login');
+})->name('login');
+
 // Admin Routes
 Route::prefix('admin')->name('admin.')->group(function () {
     // Authentication Routes
